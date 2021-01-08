@@ -5,9 +5,10 @@ import utility #from another file
 import database #from another file
 
 #vare_data = Data("vare")
-#ansatte_data = Data("ansatte")
-#vager = Data("vagter")
-#kunde_data = Data("vare")
+ansatte_data = database.Data("ansatte", table_columns = ['navn STRING', 'løn REAL', 'fyret INT'], randoms = [['peter', 4.5, 0], ['harry', 1200.2, 1], ['zahir', -1, 0]])
+ansatte_data.print()
+#vager = database.Data("vagter")
+#kunde_data = database.Data("vare")
 
 
 # define font
