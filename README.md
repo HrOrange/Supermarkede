@@ -8,11 +8,11 @@ lad vær
 **don't**
 
 ## Contributing
--Nicolai Hansen
--Joarchim
--Michael
--Alexander
--Anders
+* Nicolai Hansen
+* Joarchim
+* Michael
+* Alexander
+* Anders
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
