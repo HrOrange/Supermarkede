@@ -9,8 +9,8 @@ lad vær
 #Michael was here
 ## Contributing
 * Nicolai Hansen
-* Joachim Brandt Andersen 
-* Michael
+* Joachim Brandt Andersen
+* Michael Jørgensen
 * Alexander
 * Anders
 
