@@ -9,7 +9,7 @@ lad vær
 
 ## Contributing
 * Nicolai Hansen
-* Joarchim
+* Joachim Brandt Andersen 
 * Michael
 * Alexander
 * Anders
