@@ -34,6 +34,7 @@ class Data:
             self.con.commit()
         else:
             print(navn + '.db eksisterer')
+
     def insert(self, data):
         #TODO: tilføj data til database
         pass
@@ -43,8 +44,14 @@ class Data:
     def find(self, data):
         #TODO: check om data er i database og returner True eller False
         pass
+
     def print(self): #bare en print funktion der printer det data der er i databasen
         c = self.con.cursor()
         c.execute('SELECT * FROM ' + self.navn)
         for x in c:
             print(x)
+
+    #Joachim lavede dette (Hvordan tager jeg længden af den ønskede database, hvilket er users.db)
+    def check_user(self, navn, password):
+        for i in range(0,len()):
+            print(1)

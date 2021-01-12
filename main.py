@@ -5,9 +5,14 @@ import utility #from another file
 import database #from another file
 
 #vare_data = Data("vare")
+
 ansatte_data = database.Data("ansatte", table_columns = ['navn STRING', 'løn REAL', 'fyret INT'], randoms = [['peter', 4.5, 0], ['harry', 1200.2, 1], ['zahir', -1, 0]])
 ansatte_data.print()
-#vager = database.Data("vagter")
+
+users_data = database.Data("users", table_columns = ['navn STRING', 'password STRING'], randoms = [['Joachim',1234], ['Nicolai', 4321], ['Michael', 1], ['Alexander', 2], ['Anders', 3]])
+users_data.print()
+
+#vagter = database.Data("vagter")
 #kunde_data = database.Data("vare")
 
 
@@ -30,11 +35,15 @@ def login():
     global user_role
     user_role = "boss"
     #TODO: login
+
+    database.Data.check_user(1, name, password)
+
     if(True):
         root.destroy()
     else:
-        name_entry.set('')
-        password.set('')
+        print('Nope')
+        None
+
 def registrer():
     #TODO: register
     if(True):
@@ -95,19 +104,24 @@ if(user_role == 'boss'):
     def give_role():
         #TODO: open toplevel
         pass
+
     def edit_role():
         #TODO: open toplevel
         pass
+
     def edit_pris():
         #TODO: open toplevel
         pass
+
     def shift_overview():
         def add_shift():
             #TODO: open toplevel
             pass
+
         def edit_shift():
             #TODO: open toplevel
             pass
+
         def remove_shift():
             #TODO: open toplevel
             pass
@@ -117,7 +131,7 @@ if(user_role == 'boss'):
         cat = tk.Canvas(window, height = toplevel_size[0], width = toplevel_size[1], bg='white')
         cat.pack(fill = tk.BOTH, expand = True)
 
-        offX = int(toplevel_size[0] / 5)
+        offX = int(toplevel_size[0] / 7)
         for i in range(0, toplevel_size[0], offX):
             cat.create_line([(i, 0), (i, toplevel_size[1])])
 
