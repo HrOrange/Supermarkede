@@ -44,6 +44,13 @@ class Data:
     def find(self, data):
         #TODO: check om data er i database og returner True eller False
         pass
+    def get_length(self): #jeg hader denne solution
+        c = self.con.cursor()
+        c.execute('SELECT * FROM ' + self.navn)
+        count = 0
+        for x in c:
+            count += 1
+        return count
 
     def print(self): #bare en print funktion der printer det data der er i databasen
         c = self.con.cursor()
@@ -53,5 +60,18 @@ class Data:
 
     #Joachim lavede dette (Hvordan tager jeg længden af den ønskede database, hvilket er users.db)
     def check_user(self, navn, password):
-        for i in range(0,len()):
-            print(1)
+        c = self.con.cursor()
+        c.execute('SELECT * FROM ' + self.navn) #gætter på du gerne vil have noget data fra din database du kan tjække igennem
+
+        for i in range(0, self.get_length()):
+            pass
+            #print(1)
+        return True
+
+class Data_Alternative:
+    def __init__(s):
+        s.m_con = sqlite3.connect(navn + ".db")
+    def add_database(s, database_name):
+        pass
+    def __str__(s):
+        pass
