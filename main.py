@@ -47,7 +47,9 @@ def login():
 
     check = users_data.check_user(name, password)
 
-    if(check):
+
+
+    if (check):
         root.destroy()
     else:
         print('Nope')
@@ -82,7 +84,7 @@ registrer_button.place(relx = 0.5, rely = 0.85, width = window_size[0] * 0.8, he
 
 root.mainloop() #the pause in code
 
-if check:
+if True:
     #Her åbner vi main programmet
     window_size = [600, 400]
     originial_window_size = [window_size[0], window_size[1]]
