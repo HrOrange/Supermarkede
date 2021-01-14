@@ -41,9 +41,33 @@ class Data:
     def remove(self, data):
         #TODO: fjern data/person/something fra database
         pass
-    def find(self, data):
-        #TODO: check om data er i database og returner True eller False
-        pass
+
+    def find(self, kolonne, data):
+        t = ""
+        for i in range(len(kolonne) - 1):
+            t += kolonne[i] + ","
+        t += kolonne[-1]
+
+        print('SELECT ' + t + ' FROM ' + self.navn)
+        c = self.con.cursor()
+        c.execute('SELECT ' + t + ' FROM ' + self.navn)
+
+        for x in c:
+            a = True
+            for i in range(len(data)):
+                print(x[i])
+                print(data[i])
+                if data[i] != str(x[i]):
+                    a = False
+                    break
+
+            if a == True:
+                break
+
+        return a
+
+
+
     def get_length(self): #jeg hader denne solution
         c = self.con.cursor()
         c.execute('SELECT * FROM ' + self.navn)
@@ -58,15 +82,6 @@ class Data:
         for x in c:
             print(x)
 
-    #Joachim lavede dette (Hvordan tager jeg længden af den ønskede database, hvilket er users.db)
-    def check_user(self, navn, password):
-        c = self.con.cursor()
-        c.execute('SELECT * FROM ' + self.navn) #gætter på du gerne vil have noget data fra din database du kan tjække igennem
-
-        for i in range(0, self.get_length()):
-            pass
-            #print(1)
-        return True
 
 class Data_Alternative:
     def __init__(s):
@@ -75,3 +90,7 @@ class Data_Alternative:
         pass
     def __str__(s):
         pass
+
+users_data = Data("users", table_columns = ['navn STRING', 'password STRING'], randoms = [['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']])
+users_data.print()
+print(users_data.find(["navn", "password"], ["Nicolai","4321"]))
