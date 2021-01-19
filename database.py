@@ -85,9 +85,11 @@ class Data:
 
 class Data_Alternative:
     def __init__(s, names = [], column_names = [], column_types = [], randoms = []):
-        s.con = sqlite3.connect("data.db")
+        s.con = sqlite3.connect("data_testing.db")
         s.c = None
 
+        s.tabel_names = names
+        print(s.tabel_names)
         #['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']
         for i in range(len(names)):
             try:
@@ -104,7 +106,7 @@ class Data_Alternative:
                 command += column_names[i][-1] + ') VALUES (' + '?,' * (len(column_names[i]) - 1) + '?)'
 
                 s.c = s.con.cursor()
-                for r in randoms:
+                for r in randoms[i]:
                     s.c.execute(command, r)
                 s.con.commit()
             except:
@@ -130,10 +132,49 @@ class Data_Alternative:
 
         return a
     def add_tabel(s, tabel_name):
+        #TODO: brug kommandoen "CREATE TABLE [table_name] (something, something, something) guide kan findes på lærpython.dk
+
+        s.table_names.append(tabel_name)
         pass
     def __str__(s):
-        pass
+        c = s.con.cursor()
 
+        largest_tabel = 0
+        for i in s.tabel_names:
+            c.execute('SELECT * FROM ' + i)
+            for j in c:
+                if len(j) > largest_tabel:
+                    largest_tabel = len(j)
+                break
+
+        p = '\n' + "#" * 40 + "\n"
+        for i in range(len(s.tabel_names) - 1):
+            t = math.floor(((largest_tabel * 3) - len(s.tabel_names[i])) / 2 + 1)
+            p += ('-' * t * 2) + s.tabel_names[i] + ('-' * t * 2) + "\n"
+            c.execute('SELECT * FROM ' + s.tabel_names[i])
+            for j in c:
+                for k in range(len(j) - 1):
+                    p += str(j[k]) + " | "
+                p += str(j[-1]) + "\n"
+            p += "\n"
+
+        t = math.floor(((largest_tabel * 3) - len(s.tabel_names[-1])) / 2 + 1)
+        p += ('-' * t * 2) + s.tabel_names[-1] + ('-' * t * 2) + "\n"
+        c.execute('SELECT * FROM ' + s.tabel_names[-1])
+        for j in c:
+            for k in range(len(j) - 1):
+                p += str(j[k]) + " | "
+            p += str(j[-1]) + "\n"
+
+        p += "#" * 40 + '\n'
+
+        return p
 #users_data = Data("users", columns = ['navn STRING', 'password STRING'], randoms = [['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']])
 #users_data.print()
 #print(users_data.find(["navn", "password"], ["Nicolai","4321"]))
+data = Data_Alternative(
+names = ["test_1", "test_2"],
+column_names = [['col_1', 'col_2', 'col_3', 'col_4'],  ['trar', 'jiajwd']],
+column_types = [['STRING', 'INT', 'INT', 'STRING'],  ['STRING', 'INT']],
+randoms = [[['peter', 5, 10, 'hej'], ['lars', 2000, 10, 'peter']], [['peter', 5], ['lars', 2000]]])
+print(str(data))
