@@ -93,7 +93,7 @@ class Data_Alternative:
         #['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']
         for i in range(len(names)):
             try:
-                command = "CREATE TABLE " + str(names[i]) + " (ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+                command = "CREATE TABLE " + str(names[i]) + " (ID INTEGER PRIMARY KEY, "
                 for x in range(len(column_names[i]) - 1):
                     command += column_names[i][x] + ' ' + column_types[i][x] + ", "
                 command += column_names[i][-1] + ' ' + column_types[i][x] + ")"
@@ -131,12 +131,41 @@ class Data_Alternative:
                 break
 
         return a
-    def add_tabel(s, tabel_name):
-        #TODO: brug kommandoen "CREATE TABLE [table_name] (something, something, something) guide kan findes på lærpython.dk
 
-        s.table_names.append(tabel_name)
+    def add_tabel(s, tabel_name, tabel_colums):
+        #TODO: brug kommandoen "CREATE TABLE [table_name] (something, something, something) guide kan findes på lærpython.dk
+        c = s.con.cursor()
+        print(tabel_name)
+        print(tabel_colums)
+        command = 'CREATE TABLE ' + str(tabel_name) + ' (id INTERGER PRIMARY KEY,'
+        for x in range(len(tabel_colums) - 1):
+            command += tabel_colums[x] + ','
+        command += tabel_colums[-1] + ')'
+        print(command)
+        c.execute(command)
+        s.tabel_names.append(tabel_name)
+
+    def insert(s, tabel_name, colum_names, data):
+        #TODO: tilføj data til database
+        command = 'INSERT INTO ' + tabel_name + '('
+        for x in range(len(colum_names) - 1):
+            command += colum_names[x] + ','
+        command += colum_names[-1] + ') VALUES ('
+        command += '?,' * (len(data) - 1) + '?)'
+        print(command)
+        s.con.execute(command,data)
+        s.con.commit()
+
+
+
+    def remove(s, data):
+        #TODO: fjern data/person/something fra database
         pass
+
+
     def __str__(s):
+        if len(s.tabel_names) == 0:
+            return ''
         c = s.con.cursor()
 
         largest_tabel = 0
@@ -153,6 +182,7 @@ class Data_Alternative:
             p += ('-' * t * 2) + s.tabel_names[i] + ('-' * t * 2) + "\n"
             c.execute('SELECT * FROM ' + s.tabel_names[i])
             for j in c:
+                print(j)
                 for k in range(len(j) - 1):
                     p += str(j[k]) + " | "
                 p += str(j[-1]) + "\n"
@@ -162,6 +192,7 @@ class Data_Alternative:
         p += ('-' * t * 2) + s.tabel_names[-1] + ('-' * t * 2) + "\n"
         c.execute('SELECT * FROM ' + s.tabel_names[-1])
         for j in c:
+            print(j)
             for k in range(len(j) - 1):
                 p += str(j[k]) + " | "
             p += str(j[-1]) + "\n"
@@ -173,9 +204,18 @@ class Data_Alternative:
 #users_data.print()
 #print(users_data.find(["navn", "password"], ["Nicolai","4321"]))
 
-#data = Data_Alternative(
-#names = ["test_1", "test_2"],
-#column_names = [['col_1', 'col_2', 'col_3', 'col_4'],  ['trar', 'jiajwd']],
-#column_types = [['STRING', 'INT', 'INT', 'STRING'],  ['STRING', 'INT']],
-#randoms = [[['peter', 5, 10, 'hej'], ['lars', 2000, 10, 'peter']], [['peter', 5], ['lars', 2000]]])
+data1 = Data_Alternative()
+data1.add_tabel("Katte", ['kat1 STRING', 'katte5 INT'])
+
+for x in range(5):
+    data1.insert('Katte', ['kat1','katte5'], ['Joachim er bedre end Nicolai', 5])
+
+print(str(data1))
+
+
+# data = Data_Alternative(
+# names = ["test_1", "test_2"],
+# column_names = [['col_1', 'col_2', 'col_3', 'col_4'],  ['trar', 'jiajwd']],
+# column_types = [['STRING', 'INT', 'INT', 'STRING'],  ['STRING', 'INT']],
+# randoms = [[['peter', 5, 10, 'hej'], ['lars', 2000, 10, 'peter']], [['peter', 5], ['lars', 2000]]])
 #print(str(data))
