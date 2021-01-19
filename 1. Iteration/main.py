@@ -126,7 +126,8 @@ class ansat_window(tk.Frame):
     def __init__(s, master = None, window_size = [600, 400], window_name = 'Ansat konsol'):
         s.root = master
         tk.Frame.__init__(s, master)
-        s.place(width = window_size[0], height = window_size[1])
+        s.pack()
+        #s.place(width = window_size[0], height = window_size[1])
         if master != None:
             master.title(window_name)
         #s.bind('<Configure>', window_resize_event) #this calls the function window_resize_event whenever a window resize event is happening

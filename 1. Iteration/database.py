@@ -172,9 +172,10 @@ class Data_Alternative:
 #users_data = Data("users", columns = ['navn STRING', 'password STRING'], randoms = [['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']])
 #users_data.print()
 #print(users_data.find(["navn", "password"], ["Nicolai","4321"]))
-data = Data_Alternative(
-names = ["test_1", "test_2"],
-column_names = [['col_1', 'col_2', 'col_3', 'col_4'],  ['trar', 'jiajwd']],
-column_types = [['STRING', 'INT', 'INT', 'STRING'],  ['STRING', 'INT']],
-randoms = [[['peter', 5, 10, 'hej'], ['lars', 2000, 10, 'peter']], [['peter', 5], ['lars', 2000]]])
-print(str(data))
+
+#data = Data_Alternative(
+#names = ["test_1", "test_2"],
+#column_names = [['col_1', 'col_2', 'col_3', 'col_4'],  ['trar', 'jiajwd']],
+#column_types = [['STRING', 'INT', 'INT', 'STRING'],  ['STRING', 'INT']],
+#randoms = [[['peter', 5, 10, 'hej'], ['lars', 2000, 10, 'peter']], [['peter', 5], ['lars', 2000]]])
+#print(str(data))
