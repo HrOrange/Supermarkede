@@ -210,13 +210,11 @@ class Data_Alternative:
 #users_data.print()
 #print(users_data.find(["navn", "password"], ["Nicolai","4321"]))
 
-data1 = Data_Alternative()
+'''data1 = Data_Alternative()
 data1.add_tabel("Katte", ['kat1 STRING', 'katte5 INT'])
-
 for x in range(5):
     data1.insert('Katte', ['kat1','katte5'], ['Joachim er bedre end Nicolai', 5])
-
-print(str(data1))
+print(str(data1))'''
 
 
 # data = Data_Alternative(

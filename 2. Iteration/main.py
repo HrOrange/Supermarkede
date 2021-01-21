@@ -26,16 +26,17 @@ randoms = [[], [[2020, 5, 24, 12, 30, 2020, 24, 5, 16, 30], [2020, 11, 10, 10, 3
 
 #myFont = font.Font(family='Helvetica', size = 15, weight = "bold")
 class login_register_window(tk.Frame):
-    def __init__(s, master = None, window_size = [300, 200], window_name = 'Login/Registrer'):
-        s.root = master
-        tk.Frame.__init__(s, master)
-        if master != None:
-            master.title(window_name)
+    def __init__(s, master = None, window_size = [300, 200], window_name = 'Login/Registrer', login = True):
+        s.root = tk.Tk()
+        tk.Frame.__init__(s, s.root)
+        if s.root != None:
+            s.root.title(window_name)
 
         #my_frame = tk.Frame(s, width = 300, height = 300)
         #my_frame.place(width=200, height=200)
         #s.root.protocol("WM_DELETE_WINDOW", lambda : s.root.destroy())
 
+        s.root.geometry(str(window_size[0]) + 'x' + str(window_size[1]))
         s.place(width = window_size[0], height = window_size[1])
         #person information. Vi skulle måske lave en hel klasse til dette.
         s.ansat = False
@@ -58,17 +59,18 @@ class login_register_window(tk.Frame):
 
         #buttons
         button_size = [200, 50]
-        s.login_button = tk.Button(s, text="Login", command = s.login, font = ('Helvetica', '15', 'bold'))
+        s.login_button = tk.Button(s, text = "Login" if login == True else "Confirm", command = s.login if login == True else s.confirm_role, font = ('Helvetica', '15', 'bold'))
         s.login_button.place(relx = 0.5, rely = 0.65, width = window_size[0] * 0.8, height = window_size[1] * 0.2, anchor = tk.CENTER)
         s.registrer_button = tk.Button(s, text="Registrer", command = s.registrer, font = ('Helvetica', '15', 'bold'))
         s.registrer_button.place(relx = 0.5, rely = 0.85, width = window_size[0] * 0.8, height = window_size[1] * 0.2, anchor = tk.CENTER)
+        s.mainloop()
     def confirm_role(s):
-        if s.name == '':
+        if s.navn == '':
             name = s.name_entry.get()
             password = s.password_entry.get()
 
-            #s.rolle = ansatte_data.get('')
-
+            #s.rolle = ansatte_data.find(['Navn', 'Kodeord'], [name, password], get = 'Rolle')
+            #s.close()
     def login(s):
         name = s.name_entry.get()
         password = s.password_entry.get()
@@ -108,10 +110,7 @@ class login_register_window(tk.Frame):
 
 role = None
 window_size = [300, 200]
-root = tk.Tk()
-root.geometry(str(window_size[0]) + "x" + str(window_size[1]))
-login_window = login_register_window(root)
-login_window.mainloop()
+login_window = login_register_window()
 
 #print(login_window.role)
 
@@ -132,13 +131,13 @@ class shift_overview_window(tk.Toplevel):
             s.cat.create_line([(0, i), (toplevel_size[0], i)])
 class ansat_window(tk.Frame):
     def __init__(s, master = None, window_size = [600, 400], window_name = 'Ansat konsol'):
-        s.root = master
-        s.root.geometry(str(window_size[0]) + "x" + str(window_size[1]))
-        tk.Frame.__init__(s, master)
+        s.root = tk.Tk()
+        #s.root.geometry(str(window_size[0]) + "x" + str(window_size[1])) i denne classes bruges der pack, så størrelsen på root sættes automatisk
+        tk.Frame.__init__(s, s.root)
         s.pack()
-        #s.place(width = window_size[0], height = window_size[1])
-        if master != None:
-            master.title(window_name)
+        #s.place(width = window_size[0], height = window_size[1]) i denne classes bruges der pack, så størrelsen på root sættes automatisk
+        if s.root != None:
+            s.root.title(window_name)
         #s.bind('<Configure>', window_resize_event) #this calls the function window_resize_event whenever a window resize event is happening
 
         #frames
@@ -170,6 +169,7 @@ class ansat_window(tk.Frame):
             #s.edit_role_button = tk.Button(left_frame, text = "Rediger Rolle", command = edit_role).pack(side = tk.TOP)
             #s.edit_price_button = tk.Button(left_frame, text = "Rediger Pris", command = edit_pris).pack(side = tk.TOP)
             #s.shift_overview_button = tk.Button(left_frame, text = "Vagt Oversigt", command = shift_overview).pack(side = tk.TOP)
+        s.mainloop()
     def edit_pris(s):
         #TODO: open toplevel
         pass
@@ -180,16 +180,21 @@ class ansat_window(tk.Frame):
         #TODO: open toplevel
         pass
     def shift_overview(s):
-        #TODO: open toplevel
-        pass
+        confirm_window = login_register_window(window_name = 'Confirm', login = False)
+        #if confirm_window.rolle == 'something':
+        overview_page = shift_overview_window()
+        #'''
+
     def window_resize_event(s, event):
         size = int(20 * (0.4 * s.root.winfo_width() / originial_window_size[0] + 0.6 * s.root.winfo_height() / originial_window_size[1]))
         for i in buttons:
             s.buttons[i]['font'] = s.myFont
     def close(s):
         s.root.destroy()
-rolle = util.roller.butiks_chef.value
-print(rolle)
-root = tk.Tk()
-main_window = ansat_window(root)
-main_window.mainloop()
+
+if login_window.ansat or login_window.kunde:
+    rolle = util.roller.butiks_chef.value #til testing
+    main_window = ansat_window()
+else:
+    print('Du loggede ikke ind, så vi åben og prøv igen')
+    #kunne gemme ens attempts per dag, eller noget i den stil
