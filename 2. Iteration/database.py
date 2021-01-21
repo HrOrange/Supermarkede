@@ -42,16 +42,20 @@ class Data:
         #TODO: fjern data/person/something fra database
         pass
 
-    def find(self, kolonne, data):
+    def find(self, kolonne, data, get = None):
         t = ""
         for i in range(len(kolonne) - 1):
             t += kolonne[i] + ","
         t += kolonne[-1]
 
+        if get != None:
+            t += "," + get
+
         #print('SELECT ' + t + ' FROM ' + self.navn)
         c = self.con.cursor()
         c.execute('SELECT ' + t + ' FROM ' + self.navn)
 
+        a = False
         for x in c:
             a = True
             for i in range(len(data)):
@@ -62,6 +66,8 @@ class Data:
                     break
 
             if a == True:
+                if get != None:
+                    return x[-1]
                 break
 
         return a

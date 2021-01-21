@@ -5,11 +5,11 @@ import tkinter as tk
 import time
 import random
 import math
-import utility #from another file
+import utility as util #from another file
 import database #from another file
 
 
-ansatte_data = database.Data("Ansatte", columns = ['Navn STRING', 'Kodeord STRING', 'Løn REAL', 'Fyret INT'], randoms = [['peter', 'hans', 4.5, 0], ['harry', 'klarry', 1200.2, 1], ['zahir', 'carl', -1, 0]])
+ansatte_data = database.Data("Ansatte", columns = ['Navn STRING', 'Kodeord STRING', 'Løn REAL', 'Fyret INT', 'Rolle INT'], randoms = [['peter', 'hans', 4.5, 0, util.roller.butiks_chef.value], ['harry', 'klarry', 1200.2, 1, util.roller.butiks_chef.value], ['zahir', 'carl', -1, 0, util.roller.service_medarbejder.value]])
 ansatte_data.print()
 
 users_data = database.Data("Kunder", columns = ['Navn STRING', 'Kodeord STRING'], randoms = [['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']])
@@ -42,6 +42,7 @@ class login_register_window(tk.Frame):
         s.kunde = False
         s.navn = ''
         s.kodeord = ''
+        s.rolle = 0
 
         #labels
         s.name_label = tk.Label(s, text = "Name", font = ('Helvetica', '15', 'bold'))
@@ -61,10 +62,13 @@ class login_register_window(tk.Frame):
         s.login_button.place(relx = 0.5, rely = 0.65, width = window_size[0] * 0.8, height = window_size[1] * 0.2, anchor = tk.CENTER)
         s.registrer_button = tk.Button(s, text="Registrer", command = s.registrer, font = ('Helvetica', '15', 'bold'))
         s.registrer_button.place(relx = 0.5, rely = 0.85, width = window_size[0] * 0.8, height = window_size[1] * 0.2, anchor = tk.CENTER)
-
     def confirm_role(s):
-        #TODO: do this
-        pass
+        if s.name == '':
+            name = s.name_entry.get()
+            password = s.password_entry.get()
+
+            #s.rolle = ansatte_data.get('')
+
     def login(s):
         name = s.name_entry.get()
         password = s.password_entry.get()
@@ -77,6 +81,7 @@ class login_register_window(tk.Frame):
             print("logged in")
             s.navn = name
             s.kodeord = password
+            #s.rolle = ansatte_data.find(['Navn', 'Kodeord'], [name, password], get = 'Rolle')
             s.close()
         else:
             print('Navn eller kodeord er forkert')
@@ -84,13 +89,19 @@ class login_register_window(tk.Frame):
         name = s.name_entry.get()
         password = s.password_entry.get()
 
-        role = "boss"
-        s.got_in = users_data.check_user(name, password)
+        findes_i_database = ansatte_data.find(['Navn', 'Kodeord'], [name, password])
 
-        if s.got_in:
-            name_entry.set('')
-            password_entry.set('')
+        #s.role = "boss"
+
+        if findes_i_database:
+            s.name_entry.set('')
+            s.password_entry.set('')
         else:
+            print("registered")
+            s.navn = name
+            s.kodeord = password
+            s.ansat = True
+            #ansatte_data.insert(s.navn, s.kodeord)
             s.close()
     def close(s):
         s.root.destroy()
@@ -103,9 +114,6 @@ login_window = login_register_window(root)
 login_window.mainloop()
 
 #print(login_window.role)
-print(login_window.ansat)
-print(login_window.kunde)
-print(login_window.navn)
 
 myFont = ('Helvetica', '15', "bold")
 class shift_overview_window(tk.Toplevel):
@@ -125,6 +133,7 @@ class shift_overview_window(tk.Toplevel):
 class ansat_window(tk.Frame):
     def __init__(s, master = None, window_size = [600, 400], window_name = 'Ansat konsol'):
         s.root = master
+        s.root.geometry(str(window_size[0]) + "x" + str(window_size[1]))
         tk.Frame.__init__(s, master)
         s.pack()
         #s.place(width = window_size[0], height = window_size[1])
@@ -144,16 +153,17 @@ class ansat_window(tk.Frame):
         s.top_right_frame.pack(side = tk.TOP, expand = True, fill = tk.BOTH)
 
         #buttons
-        if(role == 'boss'):
+        if(rolle >= util.roller.butiks_chef.value):
             #toplevel_size = [400, 400]
 
             s.buttons = {}
             variable_names = ['give_role_button', 'edit_role_button', 'edit_price_button', 'shift_overview_button']
             texts = ['Giv Rolle', 'Rediger Rolle', 'Rediger Pris', 'Vagt Oversigt']
-            funcs = [give_role, edit_role, edit_pris, shift_overview]
+            funcs = [s.give_role, s.edit_role, s.edit_pris, s.shift_overview]
             for i in range(len(texts)):
                 s.buttons[variable_names[i]] = tk.Button(s.left_frame, text = texts[i], command = funcs[i], font = myFont)
-                s.buttons[variable_names[i]].place(relx = 0.5, rely = (i + 0.5) / len(texts), relwidth = 1, relheight = 1 / len(texts), anchor = tk.CENTER)
+                #s.buttons[variable_names[i]].place(relx = 0.5, rely = (i + 0.5) / len(texts), relwidth = 1, relheight = 1 / len(texts), anchor = tk.CENTER)
+                s.buttons[variable_names[i]].pack(expand = True, fill = tk.BOTH)
 
             #this is the same as above, just you know, more boring and hardcoded
             #s.give_role_button = tk.Button(left_frame, text = "Giv Rolle", command = give_role).pack(side = tk.TOP)
@@ -169,12 +179,17 @@ class ansat_window(tk.Frame):
     def edit_role(s):
         #TODO: open toplevel
         pass
+    def shift_overview(s):
+        #TODO: open toplevel
+        pass
     def window_resize_event(s, event):
         size = int(20 * (0.4 * s.root.winfo_width() / originial_window_size[0] + 0.6 * s.root.winfo_height() / originial_window_size[1]))
         for i in buttons:
             s.buttons[i]['font'] = s.myFont
     def close(s):
         s.root.destroy()
+rolle = util.roller.butiks_chef.value
+print(rolle)
 root = tk.Tk()
 main_window = ansat_window(root)
 main_window.mainloop()

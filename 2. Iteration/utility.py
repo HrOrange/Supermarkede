@@ -4,15 +4,27 @@ from enum import Enum
 #her laver vi et par ekstra funktioner som gør det nemmere i main.
 
 class roller(Enum):
-    kunde = 0
-    ansat = 1
-    boss = 2
+    #ligegyldige
+    service_medarbejder = 0
+    kasse_dame = 1
 
-''' Disse eksempler skulle gøre rolle enummen foroven nemmere at forstår
-peter = ('peter', 16, roller.ansat)
+    #medium
+    kiosk = 2
+    vin_mand = 3
+    slagter = 4
+    delikatesse_medarbejder = 5
+
+    #VIP's, aka, the cool kids
+    lukke_ansvarlig = 6
+    butiks_chef = 7
+    købmand = 8
+
+
+''' #Disse eksempler skulle gøre rolle enummen foroven nemmere at forstår
+peter = ('peter', 16, roller.service_medarbejder)
 print(peter)
-print(roller.ansat.value)
-print(roller.ansat.name)'''
+print(roller.service_medarbejder.value)
+print(roller.service_medarbejder.name)'''
 
 
 class tidspunkt:
