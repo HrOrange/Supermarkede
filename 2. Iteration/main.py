@@ -157,7 +157,7 @@ class ansat_window(tk.Frame):
 
             s.buttons = {}
             variable_names = ['give_role_button', 'edit_role_button', 'edit_price_button', 'shift_overview_button']
-            texts = ['Giv Rolle', 'Rediger Rolle', 'Rediger Pris', 'Vagt Oversigt']
+            texts = ['Giv Rolle', 'Rediger Rolle', 'Rediger Pris', 'Vagt Oversigt', '']
             funcs = [s.give_role, s.edit_role, s.edit_pris, s.shift_overview]
             for i in range(len(texts)):
                 s.buttons[variable_names[i]] = tk.Button(s.left_frame, text = texts[i], command = funcs[i], font = myFont)

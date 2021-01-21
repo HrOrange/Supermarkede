@@ -37,10 +37,12 @@ class Data:
 
     def insert(self, data):
         #TODO: tilføj data til database
-        pass
+        c = self.con.cursor()
+        #call insert
     def remove(self, data):
-        #TODO: fjern data/person/something fra database
-        pass
+        #TODO: fjern data fra database
+        c = self.con.cursor()
+        #call remove
 
     def find(self, kolonne, data, get = None):
         t = ""
