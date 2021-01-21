@@ -4,20 +4,24 @@ from enum import Enum
 #her laver vi et par ekstra funktioner som gør det nemmere i main.
 
 class roller(Enum):
+    #ingen rolle
+    ingen = 0
+    kunde = 1
+
     #ligegyldige
-    service_medarbejder = 0
-    kasse_dame = 1
+    service_medarbejder = 2
+    kasse_dame = 3
 
     #medium
-    kiosk = 2
-    vin_mand = 3
-    slagter = 4
-    delikatesse_medarbejder = 5
+    kiosk = 4
+    vin_mand = 5
+    slagter = 6
+    delikatesse_medarbejder = 7
 
     #VIP's, aka, the cool kids
-    lukke_ansvarlig = 6
-    butiks_chef = 7
-    købmand = 8
+    lukke_ansvarlig = 8
+    butiks_chef = 9
+    købmand = 10
 
 
 ''' #Disse eksempler skulle gøre rolle enummen foroven nemmere at forstår

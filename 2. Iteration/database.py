@@ -8,6 +8,7 @@ class Data:
     def __init__(self, navn, columns = None, randoms = None):
         database_exist = os.path.exists(os.getcwd() + '\\' + navn + ".db")
 
+
         self.navn = navn
         self.con = sqlite3.connect(navn + ".db")
 
@@ -22,11 +23,11 @@ class Data:
             self.con.execute(command)
 
             #Indsæt noget dummy data. BTW dummy dataen skal gives fra main igennem init paramaterne
-            colum_titles = [x.split(' ')[0] for x in columns]
+            self.colum_titles = [x.split(' ')[0] for x in columns]
             command = 'INSERT INTO ' + navn + ' ('
-            for x in range(len(colum_titles) - 1):
-                command += colum_titles[x] + ', '
-            command += colum_titles[-1] + ') VALUES (' + '?,' * (len(colum_titles) - 1) + '?)'
+            for x in range(len(self.colum_titles) - 1):
+                command += self.colum_titles[x] + ', '
+            command += self.colum_titles[-1] + ') VALUES (' + '?,' * (len(self.colum_titles) - 1) + '?)'
 
             c = self.con.cursor()
             for r in randoms:
@@ -45,6 +46,10 @@ class Data:
         #call remove
 
     def find(self, kolonne, data, get = None):
+        if get != None:
+            if get not in self.colum_titles:
+                return False
+
         t = ""
         for i in range(len(kolonne) - 1):
             t += kolonne[i] + ","
@@ -208,9 +213,10 @@ class Data_Alternative:
         p += "#" * 40 + '\n'
 
         return p
-#users_data = Data("users", columns = ['navn STRING', 'password STRING'], randoms = [['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']])
-#users_data.print()
-#print(users_data.find(["navn", "password"], ["Nicolai","4321"]))
+
+'''users_data = Data("users", columns = ['navn STRING', 'password STRING', 'rolle INT'], randoms = [['Joachim','1234', 14], ['Nicolai', '4321', 2], ['Michael', '1', 5], ['Alexander', '2', 6], ['Anders', '3', 9]])
+users_data.print()
+print(users_data.find(["navn", "password"], ["Nicolai","4321"], get = 'peter'))'''
 
 '''data1 = Data_Alternative()
 data1.add_tabel("Katte", ['kat1 STRING', 'katte5 INT'])
@@ -219,9 +225,9 @@ for x in range(5):
 print(str(data1))'''
 
 
-# data = Data_Alternative(
-# names = ["test_1", "test_2"],
-# column_names = [['col_1', 'col_2', 'col_3', 'col_4'],  ['trar', 'jiajwd']],
-# column_types = [['STRING', 'INT', 'INT', 'STRING'],  ['STRING', 'INT']],
-# randoms = [[['peter', 5, 10, 'hej'], ['lars', 2000, 10, 'peter']], [['peter', 5], ['lars', 2000]]])
-#print(str(data))
+'''data = Data_Alternative(
+names = ["test_1", "test_2"],
+column_names = [['col_1', 'col_2', 'col_3', 'col_4'],  ['trar', 'jiajwd']],
+column_types = [['STRING', 'INT', 'INT', 'STRING'],  ['STRING', 'INT']],
+randoms = [[['peter', 5, 10, 'hej'], ['lars', 2000, 10, 'peter']], [['peter', 5], ['lars', 2000]]])
+print(str(data))'''

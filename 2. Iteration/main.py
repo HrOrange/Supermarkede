@@ -39,8 +39,6 @@ class login_register_window(tk.Frame):
         s.root.geometry(str(window_size[0]) + 'x' + str(window_size[1]))
         s.place(width = window_size[0], height = window_size[1])
         #person information. Vi skulle måske lave en hel klasse til dette.
-        s.ansat = False
-        s.kunde = False
         s.navn = ''
         s.kodeord = ''
         s.rolle = 0
@@ -75,17 +73,20 @@ class login_register_window(tk.Frame):
         name = s.name_entry.get()
         password = s.password_entry.get()
 
-        s.ansat = ansatte_data.find(['Navn', 'Kodeord'], [name, password])
-        if s.ansat == False:
-            s.kunde = user_data.find(['Navn', 'Kodeord'], [name, password])
+        ansat = ansatte_data.find(['Navn', 'Kodeord'], [name, password])
+        kunde = False
+        if ansat == False:
+            kunde = users_data.find(['Navn', 'Kodeord'], [name, password])
 
-        if s.kunde or s.ansat:
-            print("logged in")
+        if kunde or ansat:
             s.navn = name
             s.kodeord = password
-            #s.rolle = ansatte_data.find(['Navn', 'Kodeord'], [name, password], get = 'Rolle')
+            s.rolle = ansatte_data.find(['Navn', 'Kodeord'], [name, password], get = 'Rolle')
+            print(s.rolle)
             s.close()
         else:
+            s.name_entry.delete(0, 'end')
+            s.password_entry.delete(0, 'end')
             print('Navn eller kodeord er forkert')
     def registrer(s):
         name = s.name_entry.get()
@@ -96,8 +97,9 @@ class login_register_window(tk.Frame):
         #s.role = "boss"
 
         if findes_i_database:
-            s.name_entry.set('')
-            s.password_entry.set('')
+            s.name_entry.delete(0, 'end')
+            s.password_entry.delete(0, 'end')
+            print('Navn eller kodeord er forkert')
         else:
             print("registered")
             s.navn = name
@@ -107,12 +109,6 @@ class login_register_window(tk.Frame):
             s.close()
     def close(s):
         s.root.destroy()
-
-role = None
-window_size = [300, 200]
-login_window = login_register_window()
-
-#print(login_window.role)
 
 myFont = ('Helvetica', '15', "bold")
 class shift_overview_window(tk.Toplevel):
@@ -180,10 +176,10 @@ class ansat_window(tk.Frame):
         #TODO: open toplevel
         pass
     def shift_overview(s):
-        confirm_window = login_register_window(window_name = 'Confirm', login = False)
+        #confirm_window = login_register_window(window_name = 'Confirm', login = False)
         #if confirm_window.rolle == 'something':
-        overview_page = shift_overview_window()
-        #'''
+        if login_window.Rolle.value > util.roller.kunde.value:
+            overview_page = shift_overview_window()
 
     def window_resize_event(s, event):
         size = int(20 * (0.4 * s.root.winfo_width() / originial_window_size[0] + 0.6 * s.root.winfo_height() / originial_window_size[1]))
@@ -192,7 +188,10 @@ class ansat_window(tk.Frame):
     def close(s):
         s.root.destroy()
 
-if login_window.ansat or login_window.kunde:
+#Det er her alle vinduerne bliver åbnet
+
+login_window = login_register_window()
+if login_window.Rolle > util.roller.ingen.value:
     rolle = util.roller.butiks_chef.value #til testing
     main_window = ansat_window()
 else:
