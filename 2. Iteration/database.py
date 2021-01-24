@@ -7,8 +7,9 @@ import os
 class Data:
     def __init__(self, navn, columns = None, randoms = None):
         database_exist = os.path.exists(os.getcwd() + '\\' + navn + ".db")
+        print(str(navn) + " : " + str(database_exist))
 
-
+        self.colum_titles = [x.split(' ')[0] for x in columns]
         self.navn = navn
         self.con = sqlite3.connect(navn + ".db")
 
@@ -23,7 +24,6 @@ class Data:
             self.con.execute(command)
 
             #Indsæt noget dummy data. BTW dummy dataen skal gives fra main igennem init paramaterne
-            self.colum_titles = [x.split(' ')[0] for x in columns]
             command = 'INSERT INTO ' + navn + ' ('
             for x in range(len(self.colum_titles) - 1):
                 command += self.colum_titles[x] + ', '
