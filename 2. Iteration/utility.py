@@ -23,6 +23,14 @@ class roller(Enum):
     butiks_chef = 9
     købmand = 10
 
+def get_rolle_name(index):
+    for r in roller:
+        if r.value == index:
+            return r.name
+def get_rolle_index(name):
+    for r in roller:
+        if r.name == name:
+            return r.value
 
 ''' #Disse eksempler skulle gøre rolle enummen foroven nemmere at forstår
 peter = ('peter', 16, roller.service_medarbejder)
