@@ -5,23 +5,29 @@ import tkinter as tk
 import time
 import random
 import math
-import utility as util #from another file
-import database #from another file
+import datetime
+
+#from other files
+import utility as util
+import database
 
 
-ansatte_data = database.Data("Ansatte", columns = ['Navn STRING', 'Kodeord STRING', 'Løn REAL', 'Fyret INT', 'Rolle INT'], randoms = [['peter', 'hans', 4.5, 0, util.roller.butiks_chef.value], ['harry', 'klarry', 1200.2, 1, util.roller.butiks_chef.value], ['zahir', 'carl', -1, 0, util.roller.service_medarbejder.value]])
-ansatte_data.print()
+#ansatte_data = database.Data("Ansatte", columns = ['Navn STRING', 'Kodeord STRING', 'Løn REAL', 'Fyret INT', 'Rolle INT'], randoms = [['peter', 'hans', 4.5, 0, util.roller.butiks_chef.value], ['harry', 'klarry', 1200.2, 1, util.roller.butiks_chef.value], ['zahir', 'carl', -1, 0, util.roller.service_medarbejder.value]])
+#ansatte_data.print()
 
 users_data = database.Data("Kunder", columns = ['Navn STRING', 'Kodeord STRING'], randoms = [['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']])
 #users_data.print()
 
-Vare_data = database.Data_Alternative(
-names = ['VagtLink', 'Vagt'],
-column_names = [['PersonID', 'VagtID'], ['StartTid_Year', 'StartTid_Month', 'StartTid_Day', 'StartTid_Hour', 'StartTid_Minute', 'SlutTid_Year', 'SlutTid_Month', 'SlutTid_day', 'SlutTid_Hour', 'SlutTid_Minute']],
-column_types = [['INT', 'INT'], ['INT' for x in range(10)]],
-randoms = [[], [[2020, 5, 24, 12, 30, 2020, 24, 5, 16, 30], [2020, 11, 10, 10, 30, 2021, 3, 25, 20, 30]]])
+ansatte_link_vagter = database.Data_Alternative(
+names = ['Ansatte', 'VagtLink', 'Vagt'],
+column_names = [['Navn', 'Kodeord', 'Løn', 'Fyret', 'Rolle'], ['PersonID', 'VagtID'], ['StartTid_Year', 'StartTid_Month', 'StartTid_Day', 'StartTid_Hour', 'StartTid_Minute', 'SlutTid_Year', 'SlutTid_Month', 'SlutTid_day', 'SlutTid_Hour', 'SlutTid_Minute', 'Uge_Dag']],
+column_types = [['STRING', 'STRING', 'REAL', 'INT', 'INT'], ['INT', 'INT'], ['INT' for x in range(11)]],
+randoms = [[['peter', 'hans', 4.5, 0, util.roller.butiks_chef.value], ['harry', 'klarry', 1200.2, 1, util.roller.butiks_chef.value], ['zahir', 'carl', -1, 0, util.roller.service_medarbejder.value]],
+                   [[1, 1], [2, 2], [1, 3]],  #husk på at disse værdier er ID'er og ikke index værdier, hvilket vil sige at den ansatte ved navn peter har index værdi 0 og ID værdi 1.
+                   [[2020, 5, 24, 12, 30, 2020, 24, 5, 16, 30, 5], [2020, 11, 10, 10, 30, 2021, 3, 25, 20, 30, 4], [2040, 11, 10, 10, 30, 2021, 3, 25, 20, 30, 3]]])
+print(str(ansatte_link_vagter))
+#ansatte_link_vagter = database.Data_Alternative("vagter")
 
-#vagter = database.Data("vagter")
 #kunde_data = database.Data("vare")
 
 #FONTS
@@ -75,12 +81,14 @@ class login_register_window(tk.Frame):
             password = s.password_entry.get()
 
             #s.rolle = ansatte_data.find(['Navn', 'Kodeord'], [name, password], get = 'Rolle')
-            #s.close()
+            s.rolle = ansatte_link_vagter.find('Ansatte', ['Navn', 'Kodeord'], [name, password], get = 'Rolle')
+            s.close()
     def login(s):
         name = s.name_entry.get()
         password = s.password_entry.get()
 
-        ansat = ansatte_data.find(['Navn', 'Kodeord'], [name, password])
+        #ansat = ansatte_data.find(['Navn', 'Kodeord'], [name, password])
+        ansat = ansatte_link_vagter.find('Ansatte', ['Navn', 'Kodeord'], [name, password])
         kunde = False
         if ansat == False:
             kunde = users_data.find(['Navn', 'Kodeord'], [name, password])
@@ -88,9 +96,8 @@ class login_register_window(tk.Frame):
         if kunde or ansat:
             s.navn = name
             s.kodeord = password
-            s.rolle = ansatte_data.find(['Navn', 'Kodeord'], [name, password], get = 'Rolle')
-            print(ansatte_data.colum_titles)
-            print(s.rolle)
+            #s.rolle = ansatte_data.find(['Navn', 'Kodeord'], [name, password], get = 'Rolle')
+            s.rolle = ansatte_link_vagter.find('Ansatte', ['Navn', 'Kodeord'], [name, password], get = 'Rolle')
             s.close()
         else:
             s.name_entry.delete(0, 'end')
@@ -222,6 +229,62 @@ class shift_overview_window:
         if s.root != None:
             s.root.title(window_name)
 
+
+        today = datetime.datetime.now().strftime("%Y/%m/%d/%H/%M/%S").split('/')
+        current_year = int(today[0])
+        current_month = int(today[1])
+        current_day = int(today[2])
+        current_hour = int(today[3])
+        current_minute = int(today[4])
+        current_second = int(today[5])
+        week_number = datetime.date(current_year, current_month, current_day).isocalendar()[1]
+        current_week_day = datetime.datetime.today().weekday()
+        print(week_number)
+
+        s.tabel = [[]] #række, kolonne
+        kolonne_titler = ['Uge ' + str(week_number), 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredage', 'Lørdag', 'Søndag']
+        for i in range(len(kolonne_titler)):
+            s.tabel[0].append(tk.Entry(s.root , font = myFont, justify = 'center'))
+            s.tabel[-1][-1].insert(tk.END, kolonne_titler[i])
+            s.tabel[-1][-1].grid(row = 0, column = i)
+            #s.tabel[-1][-1].config(state = 'disabled')
+
+
+        #c = ansatte_link_vagter.find_with_links('VagtLink', ['Navn', '', 'StartTid_Day'])
+        c = ansatte_link_vagter.con.cursor()
+        c.execute('''SELECT Ansatte.Navn, Vagt.StartTid_Year, Vagt.StartTid_Month, Vagt.StartTid_Day, Vagt.StartTid_Hour, Vagt.StartTid_Minute, Vagt.SlutTid_Year, Vagt.SlutTid_Month, Vagt.SlutTid_Day, Vagt.SlutTid_Hour, Vagt.SlutTid_Minute, Vagt.Uge_Dag
+        FROM VagtLink
+        INNER JOIN Ansatte
+        ON VagtLink.PersonID = Ansatte.ID
+        INNER JOIN Vagt
+        ON VagtLink.VagtID = Vagt.ID''')
+        for i in range(ansatte_link_vagter.get_length('Ansatte')):
+            s.tabel.append([])
+            for j in range(8):
+                s.tabel[-1].append(tk.Entry(s.root, font = myFont, justify = 'center'))
+                s.tabel[-1][-1].grid(row = i + 1, column = j)
+
+        c_2 = ansatte_link_vagter.con.cursor()
+        c_2.execute('SELECT Navn FROM Ansatte')
+        count = 1
+        for x in c_2:
+            s.tabel[count][0].insert(tk.END, x[0])
+            count += 1
+        count = 0
+        for x in c:
+            if(x[11] == week_number):
+                index = 1
+                for k in c_2:
+                    if k[0] == x[0]:
+                        break
+                    index += 1
+
+                start_time = datetime.date(current_year, current_month, current_day).weekday()
+                #slut_time = datetime.date(current_year, current_month, current_day).weekday()
+                s.tabel[index][start_time].insert(tk.END, str(x[4]) + ':' + str(x[5]) + ' - ' + str(x[9]) + ':' + str(x[10]))
+                #s.tabel[index][start_time].config(state = 'disabled')
+
+        ''' canvas approse
         s.cat = tk.Canvas(s.root, height = toplevel_size[0], width = toplevel_size[1], bg='white')
         s.cat.pack(fill = tk.BOTH, expand = True)
 
@@ -231,10 +294,10 @@ class shift_overview_window:
 
         offY = int(toplevel_size[1] / 5)
         for i in range(0, toplevel_size[1], offY):
-            s.cat.create_line([(0, i), (toplevel_size[0], i)])
+            s.cat.create_line([(0, i), (toplevel_size[0], i)])'''
+
 
 #Det er her alle vinduerne bliver åbnet
-
 #tester = yes_no_window([300, 200])
 login_window = login_register_window()
 if login_window.rolle > util.roller.ingen.value:

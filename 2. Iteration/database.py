@@ -45,15 +45,15 @@ class Data:
         c = self.con.cursor()
         #call remove
 
-    def find(self, kolonne, data, get = None):
+    def find(self, kolonner, data, get = None):
         if get != None:
             if get not in self.colum_titles:
                 return False
 
         t = ""
-        for i in range(len(kolonne) - 1):
-            t += kolonne[i] + ","
-        t += kolonne[-1]
+        for i in range(len(kolonner) - 1):
+            t += kolonner[i] + ","
+        t += kolonner[-1]
 
         if get != None:
             t += "," + get
@@ -80,7 +80,6 @@ class Data:
         return a
 
 
-
     def get_length(self): #jeg hader denne solution
         c = self.con.cursor()
         c.execute('SELECT * FROM ' + self.navn)
@@ -98,8 +97,16 @@ class Data:
 
 class Data_Alternative:
     def __init__(s, names = [], column_names = [], column_types = [], randoms = []):
-        s.con = sqlite3.connect("data_testing.db")
+        s.con = sqlite3.connect("data.db")
         s.c = None
+
+        s.column_names = {}
+        s.column_types = {}
+        s.randoms = {}
+        for i in range(len(names)):
+            s.column_names[names[i]] = column_names[i]
+            s.column_types[names[i]] = column_types[i]
+            s.randoms[names[i]] = randoms[i]
 
         s.tabel_names = names
         print(s.tabel_names)
@@ -125,11 +132,18 @@ class Data_Alternative:
             except:
                 print('Tabellen ' + names[i] + ' allerede')
 
-    def find(s, tabel, kolonner, data):
+    def find(s, tabel, kolonner, data, get = None):
+        if get != None:
+            if get not in s.column_names[tabel]:
+                return False
+
         t = ''
-        for i in range(len(kolonne) - 1):
-            t += kolonne[i] + ','
-        t += kolonne[-1]
+        for i in range(len(kolonner) - 1):
+            t += kolonner[i] + ','
+        t += kolonner[-1]
+
+        if get != None:
+            t += "," + get
 
         c = s.con.cursor()
         c.execute('SELECT ' + t + ' FROM ' + tabel)
@@ -141,10 +155,23 @@ class Data_Alternative:
                     a = False
                     break
             if a:
+                if get != None:
+                    return x[-1]
                 break
 
         return a
+    def find_quick(s, tabel, kolonner, data, get = None):
+        pass
+    def find_with_links(s, linking_tabel, link_kolonner_1, link_kolonner_2, data, get = None, get_origin = None):
+        #skal laves meget lig funktionen find, men tabeller skal linkes (det er hvad Søren ville kalde En-til-mange vi taler om her: http://bog.laerpython.dk/da/latest/ch-database/sqlite-advanced.html#en-til-mange-relation)
 
+        #et eksempel kunne være i forhold til hvilke vagter der tilhørte hvilke ansatte.
+        #linking_tabel kunne være 'VagtLink'
+        #link_kolonner_1 kunne være ['VagtLink.PersonID', 'VagtLink.VagtID']
+        #link_kolonner_1 kunne være ['Ansatte.ID', 'Vagt.ID']
+        #data ville være noget som ['Peter', 124.4, 13]
+        #get kunne være 'Kodeord' og get_origin kunne være 'Ansatte'
+        pass
     def add_tabel(s, tabel_name, tabel_colums):
         #TODO: brug kommandoen "CREATE TABLE [table_name] (something, something, something) guide kan findes på lærpython.dk
         c = s.con.cursor()
@@ -169,13 +196,61 @@ class Data_Alternative:
         s.con.execute(command,data)
         s.con.commit()
 
-
-
     def remove(s, data):
         #TODO: fjern data/person/something fra database
         pass
+    def get_length(s, tabel):
+        c = s.con.cursor()
+        c.execute('SELECT * FROM ' + tabel)
+        count = 0
+        for x in c:
+            count += 1
+        return count
+    def print(s, tabel = None):
+        if len(s.tabel_names) == 0:
+            print()
+            return
+        c = s.con.cursor()
 
+        largest_tabel = 0
+        if tabel == None:
+            for i in s.tabel_names:
+                c.execute('SELECT * FROM ' + i)
+                for j in c:
+                    if len(j) > largest_tabel:
+                        largest_tabel = len(j)
+                    break
+        else:
+            c.execute('SELECT * FROM ' + tabel)
+            for j in c:
+                if len(j) > largest_tabel:
+                    largest_tabel = len(j)
+                break
 
+        p = '\n' + "#" * 40 + "\n"
+        for i in range(len(s.tabel_names) - 1):
+            t = math.floor(((largest_tabel * 3) - len(s.tabel_names[i])) / 2 + 1)
+            p += ('-' * t * 2) + s.tabel_names[i] + ('-' * t * 2) + "\n"
+            c.execute('SELECT * FROM ' + s.tabel_names[i])
+            for j in c:
+                print(j)
+                for k in range(len(j) - 1):
+                    p += str(j[k]) + " | "
+                p += str(j[-1]) + "\n"
+            p += "\n"
+
+        t = math.floor(((largest_tabel * 3) - len(s.tabel_names[-1])) / 2 + 1)
+        p += ('-' * t * 2) + s.tabel_names[-1] + ('-' * t * 2) + "\n"
+        c.execute('SELECT * FROM ' + s.tabel_names[-1])
+        for j in c:
+            print(j)
+            for k in range(len(j) - 1):
+                p += str(j[k]) + " | "
+            p += str(j[-1]) + "\n"
+
+        p += "#" * 40 + '\n'
+
+        print(p)
     def __str__(s):
         if len(s.tabel_names) == 0:
             return ''
@@ -213,7 +288,6 @@ class Data_Alternative:
         p += "#" * 40 + '\n'
 
         return p
-
 '''users_data = Data("users", columns = ['navn STRING', 'password STRING', 'rolle INT'], randoms = [['Joachim','1234', 14], ['Nicolai', '4321', 2], ['Michael', '1', 5], ['Alexander', '2', 6], ['Anders', '3', 9]])
 users_data.print()
 print(users_data.find(["navn", "password"], ["Nicolai","4321"], get = 'peter'))'''
