@@ -97,7 +97,11 @@ class Data:
 
 class Data_Alternative:
     def __init__(s, names = [], column_names = [], column_types = [], randoms = []):
-        s.con = sqlite3.connect("data.db")
+        name = ''
+        for n in range(len(names) - 1):
+            name += names[n] + '_'
+        name += names[-1]
+        s.con = sqlite3.connect(name + ".db")
         s.c = None
 
         s.column_names = {}
@@ -109,7 +113,6 @@ class Data_Alternative:
             s.randoms[names[i]] = randoms[i]
 
         s.tabel_names = names
-        print(s.tabel_names)
         #['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']
         for i in range(len(names)):
             try:
@@ -265,12 +268,20 @@ class Data_Alternative:
                 break
 
         p = '\n' + "#" * 40 + "\n"
+
+
         for i in range(len(s.tabel_names) - 1):
             t = math.floor(((largest_tabel * 3) - len(s.tabel_names[i])) / 2 + 1)
+
             p += ('-' * t * 2) + s.tabel_names[i] + ('-' * t * 2) + "\n"
+
+            p += "ID | "
+            for j in range(len(s.column_names[s.tabel_names[i]]) - 1):
+                p += s.column_names[s.tabel_names[i]][j] + " | "
+            p += s.column_names[s.tabel_names[i]][-1] + "\n"
+
             c.execute('SELECT * FROM ' + s.tabel_names[i])
             for j in c:
-                print(j)
                 for k in range(len(j) - 1):
                     p += str(j[k]) + " | "
                 p += str(j[-1]) + "\n"
@@ -278,9 +289,14 @@ class Data_Alternative:
 
         t = math.floor(((largest_tabel * 3) - len(s.tabel_names[-1])) / 2 + 1)
         p += ('-' * t * 2) + s.tabel_names[-1] + ('-' * t * 2) + "\n"
+
+        p += "ID | "
+        for j in range(len(s.column_names[s.tabel_names[-1]]) - 1):
+            p += s.column_names[s.tabel_names[-1]][j] + " | "
+        p += s.column_names[s.tabel_names[-1]][-1] + "\n"
+
         c.execute('SELECT * FROM ' + s.tabel_names[-1])
         for j in c:
-            print(j)
             for k in range(len(j) - 1):
                 p += str(j[k]) + " | "
             p += str(j[-1]) + "\n"

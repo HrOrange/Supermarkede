@@ -1,9 +1,9 @@
 import math
-from enum import Enum
+import enum
 
 #her laver vi et par ekstra funktioner som gør det nemmere i main.
 
-class roller(Enum):
+class roller(enum.Enum):
     #ingen rolle
     ingen = 0
     kunde = 1

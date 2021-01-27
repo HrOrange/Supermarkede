@@ -151,9 +151,13 @@ class ansat_window(tk.Frame):
             #toplevel_size = [400, 400]
 
             s.buttons = {}
-            variable_names = ['give_role_button', 'edit_role_button', 'edit_price_button', 'add_shift', 'edit_shift', 'delete_shift', 'shift_overview_button', 'delete_profile']
-            texts = ['Giv Rolle', 'Rediger Rolle', 'Rediger Pris', 'Tilføj Vagt', 'Rediger Vagt', 'Slet Vagt', 'Vagt Oversigt', 'Slet Profil']
-            funcs = [s.give_role, s.edit_role, s.edit_pris, s.add_shift, s.edit_shift, s.delete_shift, s.shift_overview, s.delete_profile]
+            variable_names = ['give_role_button', 'edit_role_button', 'edit_price_button', 'delete_profile']
+            texts = ['Giv Rolle', 'Rediger Rolle', 'Rediger Pris', 'Slet Profil']
+            funcs = [s.give_role, s.edit_role, s.edit_pris, s.delete_profile]
+            if login_window.rolle > util.roller.kunde.value:
+                variable_names.insert(len(variable_names) - 1, 'shift_button')
+                funcs.insert(len(funcs) - 1, s.shift_window)
+                texts.insert(len(texts) - 1, 'Vagter')
             for i in range(len(texts)):
                 s.buttons[variable_names[i]] = tk.Button(s.left_frame, text = texts[i], command = funcs[i], font = myFont)
                 #s.buttons[variable_names[i]].place(relx = 0.5, rely = (i + 0.5) / len(texts), relwidth = 1, relheight = 1 / len(texts), anchor = tk.CENTER)
@@ -174,17 +178,8 @@ class ansat_window(tk.Frame):
     def edit_role(s):
         #TODO: open toplevel
         pass
-    def shift_overview(s):
-        #confirm_window = login_register_window(window_name = 'Confirm', login = False)
-        #if confirm_window.rolle == 'something':
-        if login_window.rolle > util.roller.kunde.value:
-            overview_page = shift_overview_window()
-    def add_shift(s):
-        pass
-    def edit_shift(s):
-        pass
-    def delete_shift(s):
-        pass
+    def shift_window(s):
+        overview_page = shift_overall()
     def delete_profile(s):
         pass
     def window_resize_event(s, event):
@@ -222,12 +217,47 @@ class yes_no_window(tk.Frame):
         s.root.destroy()
 
 #toplevels
+class shift_overall:
+    def __init__(s, toplevel_size = [500, 400], window_name = 'Vagter'):
+        s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+
+        button_names = ['shift_overview_open', 'add_shift', 'remove_shift', 'edit_shift']
+        button_funcs = [s.shift_overview_open, s.add_shift, s.remove_shift, s.edit_shift]
+        button_texts = ['Vagt Oversigt', 'Tilføj Vagt', 'Fjern Vagt', 'Rediger Vagt']
+        s.buttons = {}
+        for i in range(len(button_funcs)):
+            s.buttons[button_names[i]] = {'button' : tk.Button(s.root, text = button_texts[i], command = button_funcs[i], font = myFont).pack(fill = tk.X), 'opened' : 0}
+
+    def shift_overview_open(s):
+        if s.buttons['shift_overview_open']['opened'] == 0:
+            s.buttons['shift_overview_open']['opened'] = 1
+            overview_page = shift_overview_window()
+    def add_shift(s):
+        if s.buttons['add_shift']['opened'] == 0:
+            s.buttons['add_shift']['opened'] = 1
+            overview_page = shift_overview_window()
+    def remove_shift(s):
+        if s.buttons['remove_shift']['opened'] == 0:
+            s.buttons['remove_shift']['opened'] = 1
+            overview_page = shift_overview_window()
+    def edit_shift(s):
+        if s.buttons['edit_shift']['opened'] == 0:
+            s.buttons['edit_shift']['opened'] = 1
+            overview_page = shift_overview_window()
 class shift_overview_window:
 
     def __init__(s, toplevel_size = [500, 400], window_name = 'Vagt oversigt'):
         s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
         if s.root != None:
             s.root.title(window_name)
+
+        ##first create the scrollbar
+        #scroll_bar = tk.Scrollbar(s.root)
+        ##then create the content within
+        #can = tk.Canvas(s.root, yscrollcommand = scroll_bar.set)
+        #scroll_bar.grid(row = 0, column = 8, rowspan = 4)
 
 
         today = datetime.datetime.now().strftime("%Y/%m/%d/%H/%M/%S").split('/')
@@ -239,7 +269,6 @@ class shift_overview_window:
         current_second = int(today[5])
         week_number = datetime.date(current_year, current_month, current_day).isocalendar()[1]
         current_week_day = datetime.datetime.today().weekday()
-        print(week_number)
 
         s.tabel = [[]] #række, kolonne
         kolonne_titler = ['Uge ' + str(week_number), 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredage', 'Lørdag', 'Søndag']
@@ -247,7 +276,6 @@ class shift_overview_window:
             s.tabel[0].append(tk.Entry(s.root , font = myFont, justify = 'center'))
             s.tabel[-1][-1].insert(tk.END, kolonne_titler[i])
             s.tabel[-1][-1].grid(row = 0, column = i)
-            #s.tabel[-1][-1].config(state = 'disabled')
 
 
         #c = ansatte_link_vagter.find_with_links('VagtLink', ['Navn', '', 'StartTid_Day'])
@@ -258,7 +286,8 @@ class shift_overview_window:
         ON VagtLink.PersonID = Ansatte.ID
         INNER JOIN Vagt
         ON VagtLink.VagtID = Vagt.ID''')
-        for i in range(ansatte_link_vagter.get_length('Ansatte')):
+        antal_ansatte = ansatte_link_vagter.get_length('Ansatte')
+        for i in range(antal_ansatte):
             s.tabel.append([])
             for j in range(8):
                 s.tabel[-1].append(tk.Entry(s.root, font = myFont, justify = 'center'))
@@ -284,6 +313,13 @@ class shift_overview_window:
                 s.tabel[index][start_time].insert(tk.END, str(x[4]) + ':' + str(x[5]) + ' - ' + str(x[9]) + ':' + str(x[10]))
                 #s.tabel[index][start_time].config(state = 'disabled')
 
+        for i in range(len(s.tabel)):
+            for j in range(len(s.tabel[i])):
+                s.tabel[i][j].config(state = 'disabled')
+
+        #diskuter denne knap med gruppen. Den knap skal kun være tilgængelig for folk der er butiks_chef eller højere.
+        #apply_button = tk.Button(s.root, font = myFont, text = 'Apply', command = s.apply_change)
+        #apply_button.grid(row = antal_ansatte + 1, column = 7)
         ''' canvas approse
         s.cat = tk.Canvas(s.root, height = toplevel_size[0], width = toplevel_size[1], bg='white')
         s.cat.pack(fill = tk.BOTH, expand = True)
@@ -295,7 +331,8 @@ class shift_overview_window:
         offY = int(toplevel_size[1] / 5)
         for i in range(0, toplevel_size[1], offY):
             s.cat.create_line([(0, i), (toplevel_size[0], i)])'''
-
+    def apply_change(s):
+        print('Hello')
 
 #Det er her alle vinduerne bliver åbnet
 #tester = yes_no_window([300, 200])
