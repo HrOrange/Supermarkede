@@ -36,13 +36,29 @@ class Data:
         else:
             print(navn + '.db eksisterer')
 
-    def insert(self, data):
+    def insert(self, data, kolonner):
         #TODO: tilføj data til database
         c = self.con.cursor()
         #call insert
-    def remove(self, data):
+        p = "INSERT INTO " + self.navn + "("
+
+        for x in range(len(kolonner) - 1):
+            p += str(kolonner[x]) + ","
+        p += str(kolonner[-1]) + ") VALUES (" + "?," * (len(data)-1) + "?)"
+        print(p)
+
+        c.execute(p,data)
+        self.con.commit()
+
+
+    def remove(self, kolonner, data, get = None):
         #TODO: fjern data fra database
+
+
+
+
         c = self.con.cursor()
+        c.execute('DELETE FROM ' + self.navn + 'WHERE id = ')
         #call remove
 
     def find(self, kolonner, data, get = None):
@@ -134,6 +150,12 @@ class Data_Alternative:
                 s.con.commit()
             except:
                 print('Tabellen ' + names[i] + ' allerede')
+
+
+
+
+
+
 
     def find(s, tabel, kolonner, data, get = None):
         if get != None:
@@ -304,9 +326,15 @@ class Data_Alternative:
         p += "#" * 40 + '\n'
 
         return p
-'''users_data = Data("users", columns = ['navn STRING', 'password STRING', 'rolle INT'], randoms = [['Joachim','1234', 14], ['Nicolai', '4321', 2], ['Michael', '1', 5], ['Alexander', '2', 6], ['Anders', '3', 9]])
+
+users_data = Data("users", columns = ['navn STRING', 'password STRING', 'rolle INT'], randoms = [['Joachim','1234', 14], ['Nicolai', '4321', 2], ['Michael', '1', 5], ['Alexander', '2', 6], ['Anders', '3', 9]])
 users_data.print()
-print(users_data.find(["navn", "password"], ["Nicolai","4321"], get = 'peter'))'''
+
+users_data.insert(["uwu","Peter Griffin"],["password","navn"])
+
+print(users_data.find(["navn", "password"], ["Nicolai","4321"], get = 'peter'))
+
+
 
 '''data1 = Data_Alternative()
 data1.add_tabel("Katte", ['kat1 STRING', 'katte5 INT'])
