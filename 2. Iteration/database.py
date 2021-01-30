@@ -112,7 +112,7 @@ class Data:
 
 
 class Data_Alternative:
-    def __init__(s, names = [], column_names = [], column_types = [], randoms = []):
+    def __init__(s, names = [], column_names = [], column_types = [], defaults = [], not_nulls = [], randoms = []):
         name = ''
         for n in range(len(names) - 1):
             name += names[n] + '_'
@@ -120,22 +120,51 @@ class Data_Alternative:
         s.con = sqlite3.connect(name + ".db")
         s.c = None
 
+        #remembering the parameters
+        s.tabel_names = names
         s.column_names = {}
         s.column_types = {}
         s.randoms = {}
+        s.defaults = []
+        s.not_nulls = []
         for i in range(len(names)):
-            s.column_names[names[i]] = column_names[i]
-            s.column_types[names[i]] = column_types[i]
-            s.randoms[names[i]] = randoms[i]
+            if len(defaults) == len(names):
+                if len(defaults[i]) > 0:
+                    s.defaults.append(defaults[i])
+            else:
+                s.defaults.append([None for y in range(len(column_names[i]))])
+            if len(not_nulls) == len(names):
+                if len(not_nulls[i]) > 0:
+                    s.not_nulls.append(not_nulls[i])
+            else:
+                s.not_nulls.append([None for y in range(len(column_names[i]))])
 
-        s.tabel_names = names
-        #['Joachim','1234'], ['Nicolai', '4321'], ['Michael', '1'], ['Alexander', '2'], ['Anders', '3']
         for i in range(len(names)):
             try:
                 command = "CREATE TABLE " + str(names[i]) + " (ID INTEGER PRIMARY KEY, "
                 for x in range(len(column_names[i]) - 1):
-                    command += column_names[i][x] + ' ' + column_types[i][x] + ", "
-                command += column_names[i][-1] + ' ' + column_types[i][x] + ")"
+                    if s.defaults[i][x] != None or s.not_nulls[i][x] != None:
+                        command += column_names[i][x] + ' ' + column_types[i][x]
+
+                        if s.defaults[i][x] != None:
+                            command += ' DEFAULT ' + str(s.defaults[i][x])
+                        if s.not_nulls[i][x] != None:
+                            command += ' NOT NULL'
+
+                        command += ','
+                    else:
+                        command += column_names[i][x] + ' ' + column_types[i][x] + ", "
+
+                if s.defaults[i][-1] != None or s.not_nulls[i][-1] != None:
+                    command += column_names[i][-1] + ' ' + column_types[i][-1]
+                    if s.defaults[i][-1] != None:
+                        command += ' DEFAULT ' + str(s.defaults[i][-1])
+                    if s.not_nulls[i][-1] != None:
+                        command += ' NOT NULL'
+                    command += ')'
+                else:
+                    command += column_names[i][-1] + ' ' + column_types[i][-1] + ')'
+                #print(command)
                 s.con.execute(command)
 
                 #Indsæt noget dummy data. BTW dummy dataen skal gives fra main igennem init paramaterne
@@ -148,15 +177,15 @@ class Data_Alternative:
                 for r in randoms[i]:
                     s.c.execute(command, r)
                 s.con.commit()
+                print('Succesfully created ' + names[i])
             except:
-                print('Tabellen ' + names[i] + ' allerede')
+                print('Tabel ' + names[i] + ' eksisterede allerede.')
 
-
-
-
-
-
-
+            s.column_names[names[i]] = column_names[i]
+            s.column_names[names[i]].insert(0, 'ID')
+            s.column_types[names[i]] = column_types[i]
+            s.column_types[names[i]].insert(0, 'INT')
+            s.randoms[names[i]] = randoms[i]
     def find(s, tabel, kolonner, data, get = None):
         if get != None:
             if get not in s.column_names[tabel]:
@@ -176,7 +205,7 @@ class Data_Alternative:
         for x in c:
             a = True
             for i in range(len(data)):
-                if data[i] != str(x[i]):
+                if data[i] != x[i]:
                     a = False
                     break
             if a:
@@ -217,10 +246,18 @@ class Data_Alternative:
             command += colum_names[x] + ','
         command += colum_names[-1] + ') VALUES ('
         command += '?,' * (len(data) - 1) + '?)'
-        print(command)
         s.con.execute(command,data)
         s.con.commit()
+    def edit(s, tabel_name, ID, set_column, set_data):
+        command = 'UPDATE ' + tabel_name + ' SET ' + set_column + ' = ? WHERE ID = ?'
 
+        s.con.execute(command, [set_data, ID])
+        s.con.commit()
+    def find_and_edit(s, tabel_name, colum_names, data, set_column, set_data):
+        command = 'UPDATE ' + tabel_name + ' SET ' + set_column + ' = ? WHERE ID = ?'
+
+        s.con.execute(command, [set_data, s.find(tabel_name, column_names, data, get = 'ID')])
+        s.con.commit()
     def remove(s, data):
         #TODO: fjern data/person/something fra database
         pass
@@ -297,7 +334,6 @@ class Data_Alternative:
 
             p += ('-' * t * 2) + s.tabel_names[i] + ('-' * t * 2) + "\n"
 
-            p += "ID | "
             for j in range(len(s.column_names[s.tabel_names[i]]) - 1):
                 p += s.column_names[s.tabel_names[i]][j] + " | "
             p += s.column_names[s.tabel_names[i]][-1] + "\n"
@@ -312,7 +348,6 @@ class Data_Alternative:
         t = math.floor(((largest_tabel * 3) - len(s.tabel_names[-1])) / 2 + 1)
         p += ('-' * t * 2) + s.tabel_names[-1] + ('-' * t * 2) + "\n"
 
-        p += "ID | "
         for j in range(len(s.column_names[s.tabel_names[-1]]) - 1):
             p += s.column_names[s.tabel_names[-1]][j] + " | "
         p += s.column_names[s.tabel_names[-1]][-1] + "\n"
@@ -327,12 +362,12 @@ class Data_Alternative:
 
         return p
 
-users_data = Data("users", columns = ['navn STRING', 'password STRING', 'rolle INT'], randoms = [['Joachim','1234', 14], ['Nicolai', '4321', 2], ['Michael', '1', 5], ['Alexander', '2', 6], ['Anders', '3', 9]])
+'''users_data = Data("users", columns = ['navn STRING', 'password STRING', 'rolle INT'], randoms = [['Joachim','1234', 14], ['Nicolai', '4321', 2], ['Michael', '1', 5], ['Alexander', '2', 6], ['Anders', '3', 9]])
 users_data.print()
 
 users_data.insert(["uwu","Peter Griffin"],["password","navn"])
 
-print(users_data.find(["navn", "password"], ["Nicolai","4321"], get = 'peter'))
+print(users_data.find(["navn", "password"], ["Nicolai","4321"], get = 'peter'))'''
 
 
 
@@ -347,5 +382,7 @@ print(str(data1))'''
 names = ["test_1", "test_2"],
 column_names = [['col_1', 'col_2', 'col_3', 'col_4'],  ['trar', 'jiajwd']],
 column_types = [['STRING', 'INT', 'INT', 'STRING'],  ['STRING', 'INT']],
+defaults = [['lars', 5, 1, 'fem'], []],
+not_nulls = [[None, None, None, True], [True, True, None, None]],
 randoms = [[['peter', 5, 10, 'hej'], ['lars', 2000, 10, 'peter']], [['peter', 5], ['lars', 2000]]])
 print(str(data))'''

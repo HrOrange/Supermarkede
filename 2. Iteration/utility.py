@@ -38,7 +38,6 @@ print(peter)
 print(roller.service_medarbejder.value)
 print(roller.service_medarbejder.name)'''
 
-
 class tidspunkt:
     def __init__(s, year, month, day, hour, minute, second):
         s.year = year
@@ -50,3 +49,6 @@ class tidspunkt:
         s.time_stamp = str(year) + ":" + str(month) + ":" + str(hour) + ":" + str(minute) + ":" + str(second)
     def print(s):
         print(s.time_stamp)
+
+def swap(a, b):
+    return b, a
