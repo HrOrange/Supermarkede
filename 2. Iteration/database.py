@@ -131,11 +131,15 @@ class Data_Alternative:
             if len(defaults) == len(names):
                 if len(defaults[i]) > 0:
                     s.defaults.append(defaults[i])
+                else:
+                    s.defaults.append([None for y in range(len(column_names[i]))])
             else:
                 s.defaults.append([None for y in range(len(column_names[i]))])
             if len(not_nulls) == len(names):
                 if len(not_nulls[i]) > 0:
                     s.not_nulls.append(not_nulls[i])
+                else:
+                    s.not_nulls.append([None for y in range(len(column_names[i]))])
             else:
                 s.not_nulls.append([None for y in range(len(column_names[i]))])
 
@@ -258,9 +262,27 @@ class Data_Alternative:
 
         s.con.execute(command, [set_data, s.find(tabel_name, column_names, data, get = 'ID')])
         s.con.commit()
-    def remove(s, data):
-        #TODO: fjern data/person/something fra database
-        pass
+    def remove(s, tabel_name, ID, edit_indexes = False):
+        try:
+            command = 'DELETE FROM ' + tabel_name + ' WHERE id = ' + str(ID)
+            s.con.execute(command)
+
+            if edit_indexes:
+                for i in range(s.get_length(tabel_name) - ID + 1):
+                    s.edit(tabel_name, ID + i + 1, 'ID', ID + i)
+
+            s.con.commit()
+            return True
+        except:
+            return False
+    def find_and_remove(s, tabel_name, column_names, data, edit_indexes = False):
+        try:
+            command = 'DELETE FROM ' + tabel_name + ' WHERE id = ' + str(s.find(tabel_name, column_names, data, get = 'ID'))
+            s.con.execute(command)
+            s.con.commit()
+            return True
+        except:
+            return False
     def get_length(s, tabel):
         c = s.con.cursor()
         c.execute('SELECT * FROM ' + tabel)
@@ -385,4 +407,6 @@ column_types = [['STRING', 'INT', 'INT', 'STRING'],  ['STRING', 'INT']],
 defaults = [['lars', 5, 1, 'fem'], []],
 not_nulls = [[None, None, None, True], [True, True, None, None]],
 randoms = [[['peter', 5, 10, 'hej'], ['lars', 2000, 10, 'peter']], [['peter', 5], ['lars', 2000]]])
+print(str(data))
+data.remove('test_1', 1, edit_indexes = True)
 print(str(data))'''

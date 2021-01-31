@@ -1,9 +1,11 @@
 import math
 import enum
+import sqlite3
+import database
 
 #her laver vi et par ekstra funktioner som gør det nemmere i main.
 
-class roller(enum.Enum):
+'''class roller(enum.Enum):
     #ingen rolle
     ingen = 0
     kunde = 1
@@ -21,7 +23,25 @@ class roller(enum.Enum):
     #VIP's, aka, the cool kids
     lukke_ansvarlig = 8
     butiks_chef = 9
-    købmand = 10
+    købmand = 10'''
+
+rolle_data = database.Data_Alternative(
+names = ['roller'],
+column_names = [['rolle']],
+column_types = [['STRING']],
+not_nulls = [[True]],
+randoms = [[['ingen'], ['kunde'], ['service_medarbejder'], ['kasse_dame'], ['kiosk'], ['vin_mand'], ['slagter'], ['delikatesse_medarbejder'], ['lukke_ansvarlig'], ['butiks_chef'], ['købmand']]])
+#print(str(data))
+
+c = rolle_data.con.cursor()
+c.execute('SELECT * FROM roller')
+names = []
+for x in c:
+    names.append(x[1])
+#names = [m.name for m in util.roller] + ['newname1', 'newname2']
+roller = enum.Enum('roller', names)
+
+
 
 def get_rolle_name(index):
     for r in roller:
@@ -52,3 +72,5 @@ class tidspunkt:
 
 def swap(a, b):
     return b, a
+def reverse(a):
+    return [a[len(a) - x - 1] for x in range(len(a))]

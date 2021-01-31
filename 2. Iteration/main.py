@@ -6,11 +6,11 @@ import time
 import random
 import math
 import datetime
+import enum
 
 #from other files
 import utility as util
 import database
-
 
 #ansatte_data = database.Data("Ansatte", columns = ['Navn STRING', 'Kodeord STRING', 'Løn REAL', 'Fyret INT', 'Rolle INT'], randoms = [['peter', 'hans', 4.5, 0, util.roller.butiks_chef.value], ['harry', 'klarry', 1200.2, 1, util.roller.butiks_chef.value], ['zahir', 'carl', -1, 0, util.roller.service_medarbejder.value]])
 #ansatte_data.print()
@@ -30,10 +30,15 @@ ansatte_vagter = database.Data_Alternative(
 names = ['Ansatte', 'Vagt'],
 column_names = [['Navn', 'Kodeord', 'Løn', 'Fyret', 'Rolle'], ['StartTid_Year', 'StartTid_Month', 'StartTid_Day', 'StartTid_Hour', 'StartTid_Minute', 'SlutTid_Year', 'SlutTid_Month', 'SlutTid_day', 'SlutTid_Hour', 'SlutTid_Minute', 'Uge_Dag', 'AnsatID']],
 column_types = [['STRING', 'STRING', 'REAL', 'INT', 'INT'], ['INT' for x in range(12)]],
-randoms = [[['peter', 'hans', 4.5, 0, util.roller.butiks_chef.value], ['harry', 'klarry', 1200.2, 1, util.roller.butiks_chef.value], ['zahir', 'carl', -1, 0, util.roller.service_medarbejder.value]],
-                   [[2020, 5, 24, 12, 30, 2020, 5, 24, 16, 30, datetime.date(2020, 5, 24).weekday(), 1], [2020, 11, 10, 10, 30, 2021, 3, 25, 20, 30, datetime.date(2020, 11, 10).weekday(), 3], [2040, 11, 10, 10, 30, 2021, 3, 25, 20, 30, datetime.date(2040, 11, 10).weekday(), 2]]])
-#ansatte_vagter.edit('Ansatte', 2, 'Kodeord', 'klarry')
+randoms = [[['peter', 'hans', 4.5, 0, util.roller.købmand.value], ['harry', 'klarry', 1200.2, 1, util.roller.butiks_chef.value], ['zahir', 'carl', -1, 0, util.roller.service_medarbejder.value]],
+                   [[2020, 5, 24, 12, 30, 2020, 5, 24, 16, 30, datetime.date(2020, 5, 24).weekday(), 1], [2020, 11, 10, 10, 30, 2021, 3, 25, 20, 30, datetime.date(2020, 11, 10).weekday(), 3], [2040, 11, 10, 10, 30, 2021, 3, 25, 20, 30, datetime.date(2040, 11, 10).weekday(), 2], [2021, 2, 4, 10, 30, 2021, 2, 4, 20, 30, datetime.date(2021, 2, 4).weekday(), 2], [2021, 2, 6, 11, 0, 2021, 2, 6, 12, 30, datetime.date(2021, 2, 6).weekday(), 3]]])
 print(str(ansatte_vagter))
+
+'''printer de forskellige roller
+counter = 1
+for x in util.roller:
+    print(str(counter) + ' : ' + str(x))
+    counter += 1'''
 
 
 #FONTS
@@ -166,41 +171,54 @@ class ansat_window(tk.Frame):
         s.top_right_frame.pack(side = tk.TOP, expand = True, fill = tk.BOTH)
 
         #buttons
-        if(login_window.rolle >= util.roller.butiks_chef.value):
-            #toplevel_size = [400, 400]
 
-            s.buttons = {}
-            variable_names = ['give_role_button', 'edit_role_button', 'edit_price_button', 'delete_profile']
-            texts = ['Giv Rolle', 'Rediger Rolle', 'Rediger Pris', 'Slet Profil']
-            funcs = [s.give_role, s.edit_role, s.edit_pris, s.delete_profile]
-            if login_window.rolle > util.roller.kunde.value:
-                variable_names.insert(len(variable_names) - 1, 'shift_button')
-                funcs.insert(len(funcs) - 1, s.shift_window)
-                texts.insert(len(texts) - 1, 'Vagter')
-            for i in range(len(texts)):
-                s.buttons[variable_names[i]] = tk.Button(s.left_frame, text = texts[i], command = funcs[i], font = myFont)
-                #s.buttons[variable_names[i]].place(relx = 0.5, rely = (i + 0.5) / len(texts), relwidth = 1, relheight = 1 / len(texts), anchor = tk.CENTER)
-                s.buttons[variable_names[i]].pack(expand = True, fill = tk.BOTH)
+        s.buttons = {}
+        variable_names = ['edit_price_button', 'profile']
+        texts = ['Rediger Pris', 'Profil']
+        funcs = [s.edit_price, s.profile_window]
+        if login_window.rolle > util.roller.kunde.value:
+            extra_variable_names = ['role_button', 'shift_button']
+            extra_texts = ['Roller', 'Vagter']
+            extra_funcs = [s.role_window, s.shift_window]
 
-            #this is the same as above, just you know, more boring and hardcoded
-            #s.give_role_button = tk.Button(left_frame, text = "Giv Rolle", command = give_role).pack(side = tk.TOP)
-            #s.edit_role_button = tk.Button(left_frame, text = "Rediger Rolle", command = edit_role).pack(side = tk.TOP)
-            #s.edit_price_button = tk.Button(left_frame, text = "Rediger Pris", command = edit_pris).pack(side = tk.TOP)
-            #s.shift_overview_button = tk.Button(left_frame, text = "Vagt Oversigt", command = shift_overview).pack(side = tk.TOP)
+            for i, j, k in zip(extra_variable_names, extra_texts, extra_funcs):
+                variable_names.insert(len(variable_names) - 1, i)
+                texts.insert(len(texts) - 1, j)
+                funcs.insert(len(funcs) - 1, k)
+
+        for i in range(len(texts)):
+            s.buttons[variable_names[i]] = tk.Button(s.left_frame, text = texts[i], command = funcs[i], font = myFont)
+            #s.buttons[variable_names[i]].place(relx = 0.5, rely = (i + 0.5) / len(texts), relwidth = 1, relheight = 1 / len(texts), anchor = tk.CENTER)
+            s.buttons[variable_names[i]].pack(expand = True, fill = tk.BOTH)
+
+        #this is the same as above, just you know, more boring and hardcoded
+        #s.give_role_button = tk.Button(left_frame, text = "Giv Rolle", command = give_role).pack(side = tk.TOP)
+        #s.edit_role_button = tk.Button(left_frame, text = "Rediger Rolle", command = edit_role).pack(side = tk.TOP)
+        #s.edit_price_button = tk.Button(left_frame, text = "Rediger Pris", command = edit_pris).pack(side = tk.TOP)
+        #s.shift_overview_button = tk.Button(left_frame, text = "Vagt Oversigt", command = shift_overview).pack(side = tk.TOP)
+
+        s.windows = {'role_window' : {'window' : None, 'opened' : None},
+                              'shift_window' : {'window' : None, 'opened' : None},
+                              'profile_window' : {'window' : None, 'opened' : None}}
         s.mainloop()
-    def edit_pris(s):
+    def edit_price(s):
         #TODO: open toplevel
         pass
-    def give_role(s):
-        #TODO: make toplevel class to this specific, well problem. Might wanna combine this toplevel with the one needed for other role tasks
-        pass
-    def edit_role(s):
-        #TODO: open toplevel
-        pass
+    def role_window(s):
+        if s.windows['role_window']['opened'] == None:
+            s.windows['role_window']['opened'] = role_overall_window()
+        elif s.windows['role_window']['opened'].closed:
+            s.windows['role_window']['opened'] = role_overall_window()
     def shift_window(s):
-        overview_page = shift_overall_window()
-    def delete_profile(s):
-        pass
+        if s.windows['shift_window']['opened'] == None:
+            s.windows['shift_window']['opened'] = shift_overall_window()
+        elif s.windows['shift_window']['opened'].closed:
+            s.windows['shift_window']['opened'] = shift_overall_window()
+    def profile_window(s):
+        if s.windows['profile_window']['opened'] == None:
+            s.windows['profile_window']['opened'] = profile_window()
+        elif s.windows['profile_window']['opened'].closed:
+            s.windows['profile_window']['opened'] = profile_window()
     def window_resize_event(s, event):
         size = int(20 * (0.4 * s.root.winfo_width() / originial_window_size[0] + 0.6 * s.root.winfo_height() / originial_window_size[1]))
         for i in buttons:
@@ -523,7 +541,11 @@ class remove_shift_window:
                 vagt_id = ansatte_vagter.find('Vagt', ['AnsatID', 'StartTid_Month', 'StartTid_Day'], [ansat_id, månede, dag], get = 'ID')
                 if vagt_id != False:
                     print('Fjerner en vagt for ' + name + ' den ' + str(dag) + "." + str(månede))
-                    #ansatte_vagter.remove('Vagt', vagt_id)
+                    success = ansatte_vagter.remove('Vagt', vagt_id, edit_indexes = True)
+                    if success:
+                        print('havde success med at fjerne vagt fra ' + name)
+                    else:
+                        print(name + ' har ikke en vagt på den dato.')
 
                 s.close()
             except:
@@ -533,6 +555,359 @@ class remove_shift_window:
         s.root.destroy()
 
 #vare
+
+
+
+#roller
+def ex():
+    print('huh')
+class role_overall_window:
+    def __init__(s, window_size = [500, 400], window_name = 'Roller'):
+        s.root = tk.Toplevel(width = window_size[0], height = window_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+        s.root.resizable(False, False)
+
+        s.root.protocol("WM_DELETE_WINDOW", s.close)
+        s.closed = False
+
+        s.right_frame = tk.Frame(s.root, bg = 'red', width = window_size[0] * 0.5, height = window_size[1])
+        s.left_frame = tk.Frame(s.root, bg = 'blue', width = window_size[0] * 0.5, height = window_size[1])
+
+        s.left_frame.pack(side = tk.LEFT, expand = True, fill = tk.BOTH)
+        s.right_frame.pack(side = tk.LEFT, expand = True, fill = tk.BOTH)
+
+        s.role_labels = []
+        l = util.reverse([r.name.replace('_', ' ') for r in util.roller])
+        for i in range(len(l)):
+            s.role_labels.append(tk.Label(s.right_frame, text = str(i + 1) + '. ' + l[i] if login_window.rolle != (len(l) - i) else str(i + 1) + '. ' + l[i] + '(mig)', font = myFont))
+            s.role_labels[-1].pack(side = tk.TOP, expand = True, fill = tk.X)
+
+        if login_window.rolle >= util.roller.købmand.value:
+            button_names = ['add_role', 'remove_role', 'edit_employees_role']
+            button_funcs = [s.add_role, s.remove_role, s.edit_employees_role]
+            button_texts = ['Tilføj Rolle', 'Fjern Rolle', 'Rediger Ansattes Rolle']
+            s.buttons = {}
+            for i in range(len(button_funcs)):
+                s.buttons[button_names[i]] = {'button' : tk.Button(s.left_frame, text = button_texts[i], command = button_funcs[i], font = myFont).pack(fill = tk.X), 'opened' : None}
+
+    def add_role(s):
+        if s.buttons['add_role']['opened'] == None:
+            s.buttons['add_role']['opened'] = add_role_window()
+        elif s.buttons['add_role']['opened'].closed:
+            s.buttons['add_role']['opened'] = add_role_window()
+    def remove_role(s):
+        if s.buttons['remove_role']['opened'] == None:
+            s.buttons['remove_role']['opened'] = remove_role_window()
+        elif s.buttons['remove_role']['opened'].closed:
+            s.buttons['remove_role']['opened'] = remove_role_window()
+    def edit_employees_role(s):
+        if s.buttons['edit_employees_role']['opened'] == None:
+            s.buttons['edit_employees_role']['opened'] = edit_employees_role_window()
+        elif s.buttons['edit_employees_role']['opened'].closed:
+            s.buttons['edit_employees_role']['opened'] = edit_employees_role_window()
+    def close(s):
+        s.closed = True
+        s.root.destroy()
+class add_role_window:
+
+    def __init__(s, toplevel_size = [500, 400], window_name = 'Vagt oversigt'):
+        s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+        s.root.resizable(False, False)
+
+        s.closed = False
+        s.root.protocol("WM_DELETE_WINDOW", s.close)
+
+        #UI Elements
+        s.new_role_label = tk.Label(s.root, text = "Den nye rolle's navn", font = myFont)
+        s.new_role_label.grid(row = 0, column = 0)
+
+        s.new_role_entry = tk.Entry(s.root, font = myFont, justify = 'center', width = 8)
+        s.new_role_entry.grid(row = 0, column = 1)
+
+        s.all_roles = [r.name.replace('_', ' ') for r in util.roller]
+        #dropdown lower
+        s.role_lower_status_label = tk.Label(s.root, text = "Rolle under? (valgfri)", font = myFont)
+        s.role_lower_status_label.grid(row = 1, column = 0)
+
+        s.dropdown_lower_status_var = tk.StringVar(s.root)
+        s.dropdown_lower_status_options = [s.all_roles[x] for x in range(len(s.all_roles))]
+        s.dropdown_lower_status_var.set(s.all_roles[0]) # default value
+
+        s.dropdown_lower_status = tk.OptionMenu(s.root, s.dropdown_lower_status_var, *s.dropdown_lower_status_options)#, command = s.lower_status_dropdown_change)
+        s.dropdown_lower_status.config(font = myFont)
+        s.dropdown_lower_status.grid(row = 1, column = 1)
+
+        #dropdown upper
+        s.role_upper_status_label = tk.Label(s.root, text = "Rolle over? (valgfri)", font = myFont)
+        s.role_upper_status_label.grid(row = 2, column = 0)
+
+        s.dropdown_upper_status_var = tk.StringVar(s.root)
+        s.dropdown_upper_status_options = [s.all_roles[x] for x in range(len(s.all_roles))]
+        s.dropdown_upper_status_var.set(s.all_roles[1]) # default value
+
+        s.dropdown_upper_status = tk.OptionMenu(s.root, s.dropdown_upper_status_var, *s.dropdown_upper_status_options)#, command = s.upper_status_dropdown_change)
+        s.dropdown_upper_status.config(font = myFont)
+        s.dropdown_upper_status.grid(row = 2, column = 1)
+
+        #buttons in bottom
+        button_names = ['add_role', 'cancel']
+        button_funcs = [s.add_role, s.close]
+        button_texts = ['Tilføj Rolle', 'Afbryd']
+        s.buttons = {}
+        for i in range(len(button_funcs)):
+            s.buttons[button_names[i]] = {'button' : tk.Button(s.root, text = button_texts[i], command = button_funcs[i], font = myFont).grid(row = 3, column = i), 'opened' : None}
+
+    def lower_status_dropdown_change(s, event):
+        new_value = s.dropdown_lower_status_var.get()
+        print(new_value)
+        for x in s.all_roles:
+            if x not in s.dropdown_lower_status_options and x != s.dropdown_upper_status_var.get():
+                index = util.get_rolle_index(x.replace(' ', '_')) - 1
+                print(index)
+                if index > len(s.dropdown_lower_status_options):
+                    index = len(s.dropdown_lower_status_options)
+
+                s.dropdown_lower_status_options.insert(index, x)
+                #s.dropdown_upper_status_options.insert(index, x)
+                print(s.dropdown_lower_status_options)
+                break
+        s.dropdown_lower_status_var.set('')
+        s.dropdown_lower_status['menu'].delete(0, 'end')
+        for option in s.dropdown_lower_status_options:
+            s.dropdown_lower_status['menu'].add_command(label = option, command = ex)
+        #s.dropdown_lower_status.config(command = s.lower_status_dropdown_change)
+        s.dropdown_lower_status_var.set(new_value)
+
+        #s.dropdown_upper_status_options.remove(new_value)
+
+    def upper_status_dropdown_change(s, event):
+        print(s.dropdown_upper_status_var.get())
+
+    def add_role(s):
+        upper = s.dropdown_upper_status_var.get().replace(' ', '_')
+        lower = s.dropdown_upper_status_var.get().replace(' ', '_')
+        upper_index = util.get_rolle_index(upper)
+        lower_index = util.get_rolle_index(lower)
+
+    def close(s):
+        s.closed = True
+        s.root.destroy()
+class edit_employees_role_window:
+    def __init__(s, toplevel_size = [500, 400], window_name = 'Tilføj vagt'):
+        s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+        s.root.resizable(False, False)
+
+        s.closed = False
+        s.root.protocol("WM_DELETE_WINDOW", s.close)
+
+        #Ansattes navn
+        s.name_label = tk.Label(s.root, text = "Navn", font = myFont)
+        s.name_label.grid(row = 0, column = 0)
+
+        s.dropdown_name_var = tk.StringVar(s.root)
+        s.dropdown_name_options = []
+        c = ansatte_vagter.con.cursor()
+        c.execute('SELECT Navn FROM Ansatte')
+        for x in c:
+            s.dropdown_name_options.append(x[0])
+        s.dropdown_name_var.set(s.dropdown_name_options[0]) # default value
+
+        s.dropdown_name = tk.OptionMenu(s.root, s.dropdown_name_var, *s.dropdown_name_options)
+        s.dropdown_name.config(font = myFont)
+        s.dropdown_name.grid(row = 0, column = 1)
+
+        #Tidsrummet
+        s.dato_label = tk.Label(s.root, text = "Dato (dd.mm)", font = myFont)
+        s.dato_label.grid(row = 1, column = 0)
+
+        s.dato_entry = tk.Entry(s.root, font = myFont, justify = 'center', width = 8)
+        s.dato_entry.grid(row = 1, column = 1)
+
+        s.start_label = tk.Label(s.root, text = "Start Tidspunkt (HH:MM)", font = myFont)
+        s.start_label.grid(row = 2, column = 0)
+
+        s.start_entry = tk.Entry(s.root, font = myFont, justify = 'center', width = 8)
+        s.start_entry.grid(row = 2, column = 1)
+
+        s.slut_label = tk.Label(s.root, text = "Slut Tidspunkt (HH:MM)", font = myFont)
+        s.slut_label.grid(row = 3, column = 0)
+
+        s.slut_entry = tk.Entry(s.root, font = myFont, justify = 'center', width = 8)
+        s.slut_entry.grid(row = 3, column = 1)
+
+
+        #buttons in bottom
+        button_names = ['add_shift', 'cancel']
+        button_funcs = [s.add_shift, s.close]
+        button_texts = ['Tilføj Vagt', 'Afbryd']
+        s.buttons = {}
+        for i in range(len(button_funcs)):
+            s.buttons[button_names[i]] = {'button' : tk.Button(s.root, text = button_texts[i], command = button_funcs[i], font = myFont).grid(row = 4, column = i), 'opened' : None}
+
+    def add_shift(s):
+        start = s.start_entry.get().split(':')
+        slut = s.slut_entry.get().split(':')
+        dato = s.dato_entry.get().split('.')
+        name = s.dropdown_name_var.get()
+
+        if len(start) != 2 or len(slut) != 2 or len(dato) != 2:
+            if len(start) != 2:
+                s.start_entry.delete(0, tk.END)
+            if len(slut) != 2:
+                s.slut_entry.delete(0, tk.END)
+            if len(dato) != 2:
+                s.dato_entry.delete(0, tk.END)
+        else:
+            try:
+                start_hour = int(start[0])
+                start_minute = int(start[1])
+                slut_hour = int(slut[0])
+                slut_minute = int(slut[1])
+                dag = int(dato[0])
+                månede = int(dato[1])
+
+                today = datetime.datetime.now().strftime("%Y/%m/%d/%H/%M/%S").split('/')
+                current_year = int(today[0])
+                current_month = int(today[1])
+                current_day = int(today[2])
+                current_hour = int(today[3])
+                current_minute = int(today[4])
+                current_second = int(today[5])
+                week_number = datetime.date(current_year, current_month, current_day).isocalendar()[1]
+
+                slut_dag = dag
+                slut_månede = månede
+                if current_month > månede:
+                    current_year += 1 #jeg antager at man ikke kan få et vagt som foregår i to år på samme tid.
+                if start_hour > slut_hour:
+                    slut_dag += 1 #jeg antager at hvis man vælger f.eks. kl 22 som start_hour og 04 som slut_hour, så foregår vagten over to dage
+                if start_hour > slut_hour or start_hour == slut_hour and start_minute > slut_minute:
+                    start_hour, slut_hour = util.swap(start_hour, slut_hour)
+
+                id = ansatte_vagter.find('Ansatte', ['Navn'], [name], get = 'ID')
+                if ansatte_vagter.find('Vagt', ['StartTid_Year', 'StartTid_Month', 'StartTid_Day', 'AnsatID'], [current_year, current_month, dag, id]) == False:
+                    print('Tilføjer vagt for: ' + name + ' med start tidspunkt på: ' + s.start_entry.get() + ' og med slut tidspunkt på: ' + s.slut_entry.get())
+                    ansatte_vagter.insert('Vagt',
+                    ['StartTid_Year, StartTid_Month, StartTid_Day, StartTid_Hour, StartTid_Minute', 'SlutTid_Year, SlutTid_Month, SlutTid_Day, SlutTid_Hour, SlutTid_Minute', 'Uge_Dag', 'AnsatID'],
+                    [current_year, current_month, dag, start_hour, start_minute, current_year, current_month, slut_dag, slut_hour, slut_minute, datetime.date(current_year, månede, dag).isocalendar()[1], id])
+                    print([current_year, current_month, dag, start_hour, start_minute, current_year, current_month, slut_dag, slut_hour, slut_minute, datetime.date(current_year, månede, dag).isocalendar()[1], id])
+
+                s.close()
+            except:
+                s.start_entry.delete(0, tk.END)
+                s.slut_entry.delete(0, tk.END)
+                s.dato_entry.delete(0, tk.END)
+    def close(s):
+        s.closed = True
+        s.root.destroy()
+class remove_role_window:
+    def __init__(s, window_size = [500, 400], window_name = 'Fjern Rolle'):
+        s.root = tk.Toplevel(width = window_size[0], height = window_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+        s.root.resizable(False, False)
+
+        s.closed = False
+        s.root.protocol("WM_DELETE_WINDOW", s.close)
+
+        #UI Elements
+        s.role_label = tk.Label(s.root, text = "Role", font = myFont)
+        s.role_label.grid(row = 0, column = 0)
+
+        s.dropdown_role_options = [r.name.replace('_', ' ') for r in util.roller]
+        s.dropdown_role_var = tk.StringVar(s.root)
+        s.dropdown_role_var.set(s.dropdown_role_options[0]) # default value
+
+        s.dropdown_role = tk.OptionMenu(s.root, s.dropdown_role_var, *s.dropdown_role_options)
+        s.dropdown_role.config(font = myFont)
+        s.dropdown_role.grid(row = 0, column = 1)
+
+
+        #buttons in bottom
+        button_names = ['remove_role', 'cancel']
+        button_funcs = [s.remove_role, s.close]
+        button_texts = ['Fjern Rolle', 'Afbryd']
+        s.buttons = {}
+        for i in range(len(button_funcs)):
+            s.buttons[button_names[i]] = {'button' : tk.Button(s.root, text = button_texts[i], command = button_funcs[i], font = myFont).grid(row = 2, column = i), 'opened' : None}
+
+    def remove_role(s):
+        role = s.dropdown_role_var.get().replace(' ', '_')
+
+        #først fjern rollen fra den lokale enum
+        new_roles = []
+        for m in util.roller:
+            if m.name != role:
+                new_roles.append(m.name)
+        util.roller = enum.Enum('roller', new_roles)
+
+        #derefter fjern den fra databasen
+        util.rolle_data.find_and_remove('roller', ['rolle'], [role], edit_indexes = True)
+
+        #til sidst ryk alle med den rolle der ønskes at fjernes en tak ned
+        done = False
+        role_value = util.get_rolle_index(role)
+        while done == False:
+            ID = ansatte_vagter.find('Ansatte', ['Rolle'], [role_value], get = 'ID')
+            if ID != False:
+                ansatte_vagter.edit('Ansatte', ID, 'Rolle', role_value - 1)
+            else:
+                done = True
+        s.close()
+    def close(s):
+        s.closed = True
+        s.root.destroy()
+
+#profil
+class profile_window:
+    def __init__(s, toplevel_size = [500, 400], window_name = 'Roller'):
+        s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+        s.root.resizable(False, False)
+
+        s.right_frame = tk.Frame(s, bg = 'red', width = window_size[0] * 0.5, height = window_size[1])
+        s.left_frame = tk.Frame(s, bg = 'blue', width = window_size[0] * 0.5, height = window_size[1])
+
+        s.left_frame.pack(side = tk.LEFT, expand = True, fill = tk.BOTH)
+        s.right_frame.pack(side = tk.LEFT, expand = True, fill = tk.BOTH)
+
+        s.role_labels = []
+        l = list(util.roller)
+        for i in l:
+            s.role_labels.append(tk.Label(s, text = i, font = myFont))
+            s.role_labels[-1].pack(side = tk.TOP)
+
+        button_names = ['add_role', 'remove_role', 'edit_employees_role']
+        button_funcs = [s.add_role, s.remove_role, s.edit_employees_role]
+        button_texts = ['Tilføj Rolle', 'Fjern Rolle', 'Rediger Ansattes Rolle']
+        s.buttons = {}
+        for i in range(len(button_funcs)):
+            s.buttons[button_names[i]] = {'button' : tk.Button(s.left_frame, text = button_texts[i], command = button_funcs[i], font = myFont).pack(fill = tk.X), 'opened' : None}
+
+    def add_role(s):
+        if s.buttons['add_role']['opened'] == None:
+            s.buttons['add_role']['opened'] = add_role_window()
+        elif s.buttons['add_role']['opened'].closed:
+            s.buttons['add_role']['opened'] = add_role_window()
+    def remove_role(s):
+        if s.buttons['remove_role']['opened'] == None:
+            s.buttons['remove_role']['opened'] = remove_role_window()
+        elif s.buttons['remove_role']['opened'].closed:
+            s.buttons['remove_role']['opened'] = remove_role_window()
+    def edit_employees_role(s):
+        if s.buttons['edit_employees_role']['opened'] == None:
+            s.buttons['edit_employees_role']['opened'] = edit_employees_role_window()
+        elif s.buttons['edit_employees_role']['opened'].closed:
+            s.buttons['edit_employees_role']['opened'] = edit_employees_role_window()
+
+#names = [m.name for m in util.roller] + ['newname1', 'newname2']
+#util.roller = enum.Enum('roller', names)
 
 #Det er her alle vinduerne bliver åbnet
 #tester = yes_no_window([300, 200])
