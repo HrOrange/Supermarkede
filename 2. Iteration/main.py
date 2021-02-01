@@ -555,12 +555,306 @@ class remove_shift_window:
         s.root.destroy()
 
 #vare
+class product_overall_window:
+    def __init__(s, toplevel_size = [500, 400], window_name = 'Vagter'):
+        s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+        s.root.resizable(False, False)
+
+        button_names = ['shift_overview_open', 'add_shift', 'remove_shift', 'edit_shift']
+        button_funcs = [s.shift_overview_open, s.add_shift, s.remove_shift, s.edit_shift]
+        button_texts = ['Vagt Oversigt', 'Tilføj Vagt', 'Fjern Vagt', 'Rediger Vagt']
+        s.buttons = {}
+        for i in range(len(button_funcs)):
+            s.buttons[button_names[i]] = {'button' : tk.Button(s.root, text = button_texts[i], command = button_funcs[i], font = myFont).pack(fill = tk.X), 'opened' : None}
+
+    def shift_overview_open(s):
+        if s.buttons['shift_overview_open']['opened'] == None:
+            s.buttons['shift_overview_open']['opened'] = shift_overview_window()
+        elif s.buttons['shift_overview_open']['opened'].closed:
+            s.buttons['shift_overview_open']['opened'] = shift_overview_window()
+    def add_shift(s):
+        if s.buttons['add_shift']['opened'] == None:
+            s.buttons['add_shift']['opened'] = add_shift_window()
+        elif s.buttons['add_shift']['opened'].closed:
+            s.buttons['add_shift']['opened'] = add_shift_window()
+    def remove_shift(s):
+        if s.buttons['remove_shift']['opened'] == None:
+            s.buttons['remove_shift']['opened'] = remove_shift_window()
+        elif s.buttons['remove_shift']['opened'].closed:
+            s.buttons['remove_shift']['opened'] = remove_shift_window()
+    def edit_shift(s):
+        if s.buttons['edit_shift']['opened'] == None:
+            s.buttons['edit_shift']['opened'] = shift_overview_window()
+        elif s.buttons['edit_shift']['opened'].closed:
+            s.buttons['edit_shift']['opened'] = shift_overview_window()
+class product_overview_window:
+
+    def __init__(s, toplevel_size = [500, 400], window_name = 'Vagt oversigt'):
+        s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+        s.root.resizable(False, False)
+
+        s.closed = False
+        s.root.protocol("WM_DELETE_WINDOW", s.close)
+        ##first create the scrollbar
+        #scroll_bar = tk.Scrollbar(s.root)
+        ##then create the content within
+        #can = tk.Canvas(s.root, yscrollcommand = scroll_bar.set)
+        #scroll_bar.grid(row = 0, column = 8, rowspan = 4)
+
+
+        today = datetime.datetime.now().strftime("%Y/%m/%d/%H/%M/%S").split('/')
+        current_year = int(today[0])
+        current_month = int(today[1])
+        current_day = int(today[2])
+        current_hour = int(today[3])
+        current_minute = int(today[4])
+        current_second = int(today[5])
+        week_number = datetime.date(current_year, current_month, current_day).isocalendar()[1]
+        current_week_day = datetime.datetime.today().weekday()
+
+        s.tabel = [[]] #række, kolonne
+        kolonne_titler = ['Uge ' + str(week_number), 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredage', 'Lørdag', 'Søndag']
+        for i in range(len(kolonne_titler)):
+            s.tabel[0].append(tk.Entry(s.root , font = myFont, justify = 'center'))
+            s.tabel[-1][-1].insert(tk.END, kolonne_titler[i])
+            s.tabel[-1][-1].grid(row = 0, column = i)
+
+
+        #c = ansatte_vagter.find_with_links('VagtLink', ['Navn', '', 'StartTid_Day'])
+        c = ansatte_vagter.con.cursor()
+        c.execute('''SELECT Ansatte.Navn, Vagt.StartTid_Year, Vagt.StartTid_Month, Vagt.StartTid_Day, Vagt.StartTid_Hour, Vagt.StartTid_Minute, Vagt.SlutTid_Year, Vagt.SlutTid_Month, Vagt.SlutTid_Day, Vagt.SlutTid_Hour, Vagt.SlutTid_Minute, Vagt.Uge_Dag, Vagt.AnsatID
+        FROM Vagt
+        INNER JOIN Ansatte
+        ON Vagt.AnsatID = Ansatte.ID''')
+        antal_ansatte = ansatte_vagter.get_length('Ansatte')
+        for i in range(antal_ansatte):
+            s.tabel.append([])
+            for j in range(8):
+                s.tabel[-1].append(tk.Entry(s.root, font = myFont, justify = 'center'))
+                s.tabel[-1][-1].grid(row = i + 1, column = j)
+
+        c_2 = ansatte_vagter.con.cursor()
+        c_2.execute('SELECT Navn FROM Ansatte')
+        count = 1
+        for x in c_2:
+            s.tabel[count][0].insert(tk.END, x[0])
+            count += 1
+
+        count = 0
+        for x in c:
+            if x[11] == week_number and x[1] == current_year:
+                s.tabel[x[12]][datetime.date(x[1], x[2], x[3]).weekday() + 1].insert(tk.END, str(x[4]) + ':' + str(x[5]) + ' - ' + str(x[9]) + ':' + str(x[10]))
+
+        for i in range(len(s.tabel)):
+            for j in range(len(s.tabel[i])):
+                s.tabel[i][j].config(state = 'disabled')
+
+        #diskuter denne knap med gruppen. Den knap skal kun være tilgængelig for folk der er butiks_chef eller højere.
+        #apply_button = tk.Button(s.root, font = myFont, text = 'Apply', command = s.apply_change)
+        #apply_button.grid(row = antal_ansatte + 1, column = 7)
+        ''' canvas approse
+        s.cat = tk.Canvas(s.root, height = toplevel_size[0], width = toplevel_size[1], bg='white')
+        s.cat.pack(fill = tk.BOTH, expand = True)
+
+        offX = int(toplevel_size[0] / 7)
+        for i in range(0, toplevel_size[0], offX):
+            s.cat.create_line([(i, 0), (i, toplevel_size[1])])
+
+        offY = int(toplevel_size[1] / 5)
+        for i in range(0, toplevel_size[1], offY):
+            s.cat.create_line([(0, i), (toplevel_size[0], i)])'''
+    def apply_change(s):
+        print('Hello')
+    def close(s):
+        s.closed = True
+        s.root.destroy()
+class add_product_window:
+    def __init__(s, toplevel_size = [500, 400], window_name = 'Tilføj vagt'):
+        s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+        s.root.resizable(False, False)
+
+        s.closed = False
+        s.root.protocol("WM_DELETE_WINDOW", s.close)
+
+        #Ansattes navn
+        s.name_label = tk.Label(s.root, text = "Navn", font = myFont)
+        s.name_label.grid(row = 0, column = 0)
+
+        s.dropdown_name_var = tk.StringVar(s.root)
+        s.dropdown_name_options = []
+        c = ansatte_vagter.con.cursor()
+        c.execute('SELECT Navn FROM Ansatte')
+        for x in c:
+            s.dropdown_name_options.append(x[0])
+        s.dropdown_name_var.set(s.dropdown_name_options[0]) # default value
+
+        s.dropdown_name = tk.OptionMenu(s.root, s.dropdown_name_var, *s.dropdown_name_options)
+        s.dropdown_name.config(font = myFont)
+        s.dropdown_name.grid(row = 0, column = 1)
+
+        #Tidsrummet
+        s.dato_label = tk.Label(s.root, text = "Dato (dd.mm)", font = myFont)
+        s.dato_label.grid(row = 1, column = 0)
+
+        s.dato_entry = tk.Entry(s.root, font = myFont, justify = 'center', width = 8)
+        s.dato_entry.grid(row = 1, column = 1)
+
+        s.start_label = tk.Label(s.root, text = "Start Tidspunkt (HH:MM)", font = myFont)
+        s.start_label.grid(row = 2, column = 0)
+
+        s.start_entry = tk.Entry(s.root, font = myFont, justify = 'center', width = 8)
+        s.start_entry.grid(row = 2, column = 1)
+
+        s.slut_label = tk.Label(s.root, text = "Slut Tidspunkt (HH:MM)", font = myFont)
+        s.slut_label.grid(row = 3, column = 0)
+
+        s.slut_entry = tk.Entry(s.root, font = myFont, justify = 'center', width = 8)
+        s.slut_entry.grid(row = 3, column = 1)
+
+
+        #buttons in bottom
+        button_names = ['add_shift', 'cancel']
+        button_funcs = [s.add_shift, s.close]
+        button_texts = ['Tilføj Vagt', 'Afbryd']
+        s.buttons = {}
+        for i in range(len(button_funcs)):
+            s.buttons[button_names[i]] = {'button' : tk.Button(s.root, text = button_texts[i], command = button_funcs[i], font = myFont).grid(row = 4, column = i), 'opened' : None}
+
+    def add_shift(s):
+        start = s.start_entry.get().split(':')
+        slut = s.slut_entry.get().split(':')
+        dato = s.dato_entry.get().split('.')
+        name = s.dropdown_name_var.get()
+
+        if len(start) != 2 or len(slut) != 2 or len(dato) != 2:
+            if len(start) != 2:
+                s.start_entry.delete(0, tk.END)
+            if len(slut) != 2:
+                s.slut_entry.delete(0, tk.END)
+            if len(dato) != 2:
+                s.dato_entry.delete(0, tk.END)
+        else:
+            try:
+                start_hour = int(start[0])
+                start_minute = int(start[1])
+                slut_hour = int(slut[0])
+                slut_minute = int(slut[1])
+                dag = int(dato[0])
+                månede = int(dato[1])
+
+                today = datetime.datetime.now().strftime("%Y/%m/%d/%H/%M/%S").split('/')
+                current_year = int(today[0])
+                current_month = int(today[1])
+                current_day = int(today[2])
+                current_hour = int(today[3])
+                current_minute = int(today[4])
+                current_second = int(today[5])
+                week_number = datetime.date(current_year, current_month, current_day).isocalendar()[1]
+
+                slut_dag = dag
+                slut_månede = månede
+                if current_month > månede:
+                    current_year += 1 #jeg antager at man ikke kan få et vagt som foregår i to år på samme tid.
+                if start_hour > slut_hour:
+                    slut_dag += 1 #jeg antager at hvis man vælger f.eks. kl 22 som start_hour og 04 som slut_hour, så foregår vagten over to dage
+                if start_hour > slut_hour or start_hour == slut_hour and start_minute > slut_minute:
+                    start_hour, slut_hour = util.swap(start_hour, slut_hour)
+
+                id = ansatte_vagter.find('Ansatte', ['Navn'], [name], get = 'ID')
+                if ansatte_vagter.find('Vagt', ['StartTid_Year', 'StartTid_Month', 'StartTid_Day', 'AnsatID'], [current_year, current_month, dag, id]) == False:
+                    print('Tilføjer vagt for: ' + name + ' med start tidspunkt på: ' + s.start_entry.get() + ' og med slut tidspunkt på: ' + s.slut_entry.get())
+                    ansatte_vagter.insert('Vagt',
+                    ['StartTid_Year, StartTid_Month, StartTid_Day, StartTid_Hour, StartTid_Minute', 'SlutTid_Year, SlutTid_Month, SlutTid_Day, SlutTid_Hour, SlutTid_Minute', 'Uge_Dag', 'AnsatID'],
+                    [current_year, current_month, dag, start_hour, start_minute, current_year, current_month, slut_dag, slut_hour, slut_minute, datetime.date(current_year, månede, dag).isocalendar()[1], id])
+                    print([current_year, current_month, dag, start_hour, start_minute, current_year, current_month, slut_dag, slut_hour, slut_minute, datetime.date(current_year, månede, dag).isocalendar()[1], id])
+
+                s.close()
+            except:
+                s.start_entry.delete(0, tk.END)
+                s.slut_entry.delete(0, tk.END)
+                s.dato_entry.delete(0, tk.END)
+    def close(s):
+        s.closed = True
+        s.root.destroy()
+class remove_product_window:
+    def __init__(s, toplevel_size = [500, 400], window_name = 'Fjern vagt'):
+        s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
+        if s.root != None:
+            s.root.title(window_name)
+        s.root.resizable(False, False)
+
+        s.closed = False
+        s.root.protocol("WM_DELETE_WINDOW", s.close)
+
+        #Ansattes navn
+        s.name_label = tk.Label(s.root, text = "Navn", font = myFont)
+        s.name_label.grid(row = 0, column = 0)
+
+        s.dropdown_name_var = tk.StringVar(s.root)
+        s.dropdown_name_options = []
+        c = ansatte_vagter.con.cursor()
+        c.execute('SELECT Navn FROM Ansatte')
+        for x in c:
+            s.dropdown_name_options.append(x[0])
+        s.dropdown_name_var.set(s.dropdown_name_options[0]) # default value
+
+        s.dropdown_name = tk.OptionMenu(s.root, s.dropdown_name_var, *s.dropdown_name_options)
+        s.dropdown_name.config(font = myFont)
+        s.dropdown_name.grid(row = 0, column = 1)
+
+        #Tidsrummet
+        s.dato_label = tk.Label(s.root, text = "Dato (dd.mm)", font = myFont)
+        s.dato_label.grid(row = 1, column = 0)
+
+        s.dato_entry = tk.Entry(s.root, font = myFont, justify = 'center', width = 8)
+        s.dato_entry.grid(row = 1, column = 1)
+
+
+        #buttons in bottom
+        button_names = ['remove_shift', 'cancel']
+        button_funcs = [s.remove_shift, s.close]
+        button_texts = ['Fjern Vagt', 'Afbryd']
+        s.buttons = {}
+        for i in range(len(button_funcs)):
+            s.buttons[button_names[i]] = {'button' : tk.Button(s.root, text = button_texts[i], command = button_funcs[i], font = myFont).grid(row = 2, column = i), 'opened' : None}
+
+    def remove_shift(s):
+        dato = s.dato_entry.get().split('.')
+        name = s.dropdown_name_var.get()
+
+        if len(dato) != 2:
+            s.dato_entry.delete(0, tk.END)
+        else:
+            try:
+                dag = int(dato[0])
+                månede = int(dato[1])
+
+                ansat_id = ansatte_vagter.find('Ansatte', ['Navn'], [name], get = 'ID')
+                vagt_id = ansatte_vagter.find('Vagt', ['AnsatID', 'StartTid_Month', 'StartTid_Day'], [ansat_id, månede, dag], get = 'ID')
+                if vagt_id != False:
+                    print('Fjerner en vagt for ' + name + ' den ' + str(dag) + "." + str(månede))
+                    success = ansatte_vagter.remove('Vagt', vagt_id, edit_indexes = True)
+                    if success:
+                        print('havde success med at fjerne vagt fra ' + name)
+                    else:
+                        print(name + ' har ikke en vagt på den dato.')
+
+                s.close()
+            except:
+                s.dato_entry.delete(0, tk.END)
+    def close(s):
+        s.closed = True
+        s.root.destroy()
 
 
 
 #roller
-def ex():
-    print('huh')
 class role_overall_window:
     def __init__(s, window_size = [500, 400], window_name = 'Roller'):
         s.root = tk.Toplevel(width = window_size[0], height = window_size[1])
@@ -628,6 +922,8 @@ class add_role_window:
         s.new_role_entry.grid(row = 0, column = 1)
 
         s.all_roles = [r.name.replace('_', ' ') for r in util.roller]
+        #s.all_roles.insert(0, '')
+        #s.all_roles.append('')
         #dropdown lower
         s.role_lower_status_label = tk.Label(s.root, text = "Rolle under? (valgfri)", font = myFont)
         s.role_lower_status_label.grid(row = 1, column = 0)
@@ -636,7 +932,7 @@ class add_role_window:
         s.dropdown_lower_status_options = [s.all_roles[x] for x in range(len(s.all_roles))]
         s.dropdown_lower_status_var.set(s.all_roles[0]) # default value
 
-        s.dropdown_lower_status = tk.OptionMenu(s.root, s.dropdown_lower_status_var, *s.dropdown_lower_status_options)#, command = s.lower_status_dropdown_change)
+        s.dropdown_lower_status = tk.OptionMenu(s.root, s.dropdown_lower_status_var, *s.dropdown_lower_status_options, command = s.lower_status_dropdown_change)
         s.dropdown_lower_status.config(font = myFont)
         s.dropdown_lower_status.grid(row = 1, column = 1)
 
@@ -646,9 +942,9 @@ class add_role_window:
 
         s.dropdown_upper_status_var = tk.StringVar(s.root)
         s.dropdown_upper_status_options = [s.all_roles[x] for x in range(len(s.all_roles))]
-        s.dropdown_upper_status_var.set(s.all_roles[1]) # default value
+        s.dropdown_upper_status_var.set('') # default value
 
-        s.dropdown_upper_status = tk.OptionMenu(s.root, s.dropdown_upper_status_var, *s.dropdown_upper_status_options)#, command = s.upper_status_dropdown_change)
+        s.dropdown_upper_status = tk.OptionMenu(s.root, s.dropdown_upper_status_var, *s.dropdown_upper_status_options, command = s.upper_status_dropdown_change)
         s.dropdown_upper_status.config(font = myFont)
         s.dropdown_upper_status.grid(row = 2, column = 1)
 
@@ -661,6 +957,8 @@ class add_role_window:
             s.buttons[button_names[i]] = {'button' : tk.Button(s.root, text = button_texts[i], command = button_funcs[i], font = myFont).grid(row = 3, column = i), 'opened' : None}
 
     def lower_status_dropdown_change(s, event):
+        s.dropdown_upper_status_var.set('')
+        '''Virker ikke
         new_value = s.dropdown_lower_status_var.get()
         print(new_value)
         for x in s.all_roles:
@@ -681,16 +979,70 @@ class add_role_window:
         #s.dropdown_lower_status.config(command = s.lower_status_dropdown_change)
         s.dropdown_lower_status_var.set(new_value)
 
-        #s.dropdown_upper_status_options.remove(new_value)
+        #s.dropdown_upper_status_options.remove(new_value)'''
 
     def upper_status_dropdown_change(s, event):
-        print(s.dropdown_upper_status_var.get())
+        s.dropdown_lower_status_var.set('')
+        #print(s.dropdown_upper_status_var.get())
 
     def add_role(s):
-        upper = s.dropdown_upper_status_var.get().replace(' ', '_')
-        lower = s.dropdown_upper_status_var.get().replace(' ', '_')
-        upper_index = util.get_rolle_index(upper)
-        lower_index = util.get_rolle_index(lower)
+        upper = s.dropdown_upper_status_var.get()
+        if upper != '':
+            upper = upper.replace(' ', '_')
+            upper_index = util.get_rolle_index(upper)
+        lower = s.dropdown_lower_status_var.get()
+        if lower != '':
+            lower = lower.replace(' ', '_')
+            lower_index = util.get_rolle_index(lower)
+
+        if upper != '':
+            new_index = upper_index
+
+            #først tilføj rollen til den lokale enum
+            new_roles = [m.name for m in util.roller]
+            new_roles.insert(new_index, s.new_role_entry.get())
+            util.roller = enum.Enum('roller', new_roles)
+            #for x in util.roller:
+            #    print(str(x.name) + " : " + str(x.value))
+
+            #til sidst ryk alle med den rolle
+            done = False
+            length = len(util.roller) - 1
+            count = new_index + 1
+            while done == False:
+                ID = ansatte_vagter.find('Ansatte', ['Rolle'], [count], get = 'ID')
+                if ID != False:
+                    ansatte_vagter.edit('Ansatte', ID, 'Rolle', count + 1)
+                elif count < length:
+                    count += 1
+                else:
+                    done = True
+            util.save_roller()
+            s.close()
+        elif lower != '':
+            new_index = lower_index - 1
+
+            #først tilføj rollen til den lokale enum
+            new_roles = [m.name for m in util.roller]
+            new_roles.insert(new_index, s.new_role_entry.get())
+            util.roller = enum.Enum('roller', new_roles)
+            #for x in util.roller:
+            #    print(str(x.name) + " : " + str(x.value))
+
+            #til sidst ryk alle med den rolle
+            done = False
+            length = len(util.roller) - 1
+            count = new_index + 1
+            while done == False:
+                ID = ansatte_vagter.find('Ansatte', ['Rolle'], [count], get = 'ID')
+                if ID != False:
+                    ansatte_vagter.edit('Ansatte', ID, 'Rolle', count + 1)
+                elif count < length:
+                    count += 1
+                else:
+                    done = True
+            util.save_roller()
+            s.close()
 
     def close(s):
         s.closed = True
@@ -916,5 +1268,5 @@ if login_window.rolle > util.roller.ingen.value:
     #rolle = util.roller.butiks_chef.value #til testing
     main_window = ansat_window()
 else:
-    print('Du loggede ikke ind, så vi åben og prøv igen')
-    #kunne gemme ens attempts per dag, eller noget i den stil
+    print('Du loggede ikke ind, så prøv igen senere')
+    time.sleep(2)

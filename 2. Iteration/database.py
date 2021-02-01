@@ -113,13 +113,6 @@ class Data:
 
 class Data_Alternative:
     def __init__(s, names = [], column_names = [], column_types = [], defaults = [], not_nulls = [], randoms = []):
-        name = ''
-        for n in range(len(names) - 1):
-            name += names[n] + '_'
-        name += names[-1]
-        s.con = sqlite3.connect(name + ".db")
-        s.c = None
-
         #remembering the parameters
         s.tabel_names = names
         s.column_names = {}
@@ -143,53 +136,64 @@ class Data_Alternative:
             else:
                 s.not_nulls.append([None for y in range(len(column_names[i]))])
 
-        for i in range(len(names)):
-            try:
-                command = "CREATE TABLE " + str(names[i]) + " (ID INTEGER PRIMARY KEY, "
-                for x in range(len(column_names[i]) - 1):
-                    if s.defaults[i][x] != None or s.not_nulls[i][x] != None:
-                        command += column_names[i][x] + ' ' + column_types[i][x]
+        if len(names) > 0:
+            name = ''
+            for n in range(len(names) - 1):
+                name += names[n] + '_'
+            name += names[-1]
+            s.con = sqlite3.connect(name + ".db")
+            s.c = None
 
-                        if s.defaults[i][x] != None:
-                            command += ' DEFAULT ' + str(s.defaults[i][x])
-                        if s.not_nulls[i][x] != None:
+            for i in range(len(names)):
+                try:
+                    command = "CREATE TABLE " + str(names[i]) + " (ID INTEGER PRIMARY KEY, "
+                    for x in range(len(column_names[i]) - 1):
+                        if s.defaults[i][x] != None or s.not_nulls[i][x] != None:
+                            command += column_names[i][x] + ' ' + column_types[i][x]
+
+                            if s.defaults[i][x] != None:
+                                command += ' DEFAULT ' + str(s.defaults[i][x])
+                            if s.not_nulls[i][x] != None:
+                                command += ' NOT NULL'
+
+                            command += ','
+                        else:
+                            command += column_names[i][x] + ' ' + column_types[i][x] + ", "
+
+                    if s.defaults[i][-1] != None or s.not_nulls[i][-1] != None:
+                        command += column_names[i][-1] + ' ' + column_types[i][-1]
+                        if s.defaults[i][-1] != None:
+                            command += ' DEFAULT ' + str(s.defaults[i][-1])
+                        if s.not_nulls[i][-1] != None:
                             command += ' NOT NULL'
-
-                        command += ','
+                        command += ')'
                     else:
-                        command += column_names[i][x] + ' ' + column_types[i][x] + ", "
+                        command += column_names[i][-1] + ' ' + column_types[i][-1] + ')'
+                    #print(command)
+                    s.con.execute(command)
 
-                if s.defaults[i][-1] != None or s.not_nulls[i][-1] != None:
-                    command += column_names[i][-1] + ' ' + column_types[i][-1]
-                    if s.defaults[i][-1] != None:
-                        command += ' DEFAULT ' + str(s.defaults[i][-1])
-                    if s.not_nulls[i][-1] != None:
-                        command += ' NOT NULL'
-                    command += ')'
-                else:
-                    command += column_names[i][-1] + ' ' + column_types[i][-1] + ')'
-                #print(command)
-                s.con.execute(command)
+                    #Indsæt noget dummy data. BTW dummy dataen skal gives fra main igennem init paramaterne
+                    command = 'INSERT INTO ' + names[i] + ' ('
+                    for x in range(len(column_names[i]) - 1):
+                        command += column_names[i][x] + ', '
+                    command += column_names[i][-1] + ') VALUES (' + '?,' * (len(column_names[i]) - 1) + '?)'
 
-                #Indsæt noget dummy data. BTW dummy dataen skal gives fra main igennem init paramaterne
-                command = 'INSERT INTO ' + names[i] + ' ('
-                for x in range(len(column_names[i]) - 1):
-                    command += column_names[i][x] + ', '
-                command += column_names[i][-1] + ') VALUES (' + '?,' * (len(column_names[i]) - 1) + '?)'
+                    s.c = s.con.cursor()
+                    for r in randoms[i]:
+                        s.c.execute(command, r)
+                    s.con.commit()
+                    print('Succesfully created ' + names[i])
+                except:
+                    print('Tabel ' + names[i] + ' eksisterede allerede.')
 
-                s.c = s.con.cursor()
-                for r in randoms[i]:
-                    s.c.execute(command, r)
-                s.con.commit()
-                print('Succesfully created ' + names[i])
-            except:
-                print('Tabel ' + names[i] + ' eksisterede allerede.')
-
-            s.column_names[names[i]] = column_names[i]
-            s.column_names[names[i]].insert(0, 'ID')
-            s.column_types[names[i]] = column_types[i]
-            s.column_types[names[i]].insert(0, 'INT')
-            s.randoms[names[i]] = randoms[i]
+                s.column_names[names[i]] = column_names[i]
+                s.column_names[names[i]].insert(0, 'ID')
+                s.column_types[names[i]] = column_types[i]
+                s.column_types[names[i]].insert(0, 'INT')
+                s.randoms[names[i]] = randoms[i]
+        else:
+            s.con = sqlite3.connect("Default.db")
+            s.c = None
     def find(s, tabel, kolonner, data, get = None):
         if get != None:
             if get not in s.column_names[tabel]:
@@ -218,8 +222,36 @@ class Data_Alternative:
                 break
 
         return a
-    def find_quick(s, tabel, kolonner, data, get = None):
-        pass
+    def find_quick(s, tabel_name, kolonner, data, get = None):
+        if get != None:
+            if get not in s.column_names[tabel_name]:
+                return False
+
+        command = 'SELECT '
+
+        #the column we want
+        if(get != None):
+            command += get + ' FROM ' + tabel_name
+        else:
+            command += '* FROM ' + tabel_name
+
+        #conditions
+        command += ' WHERE ' + kolonner[0] + ' = ?'
+        if len(kolonner) > 1:
+            for i in range(1, len(kolonner)):
+                command += ' AND ' + kolonner[i] + ' = ?'
+
+        print(command)
+        c = s.con.cursor()
+        c.execute(command, data)
+
+        if get != None:
+            for x in c:
+                return x[0]
+        else:
+            for x in c:
+                return True
+        return False
     def find_with_links(s, linking_tabel, link_kolonner_1, link_kolonner_2, data, get = None, get_origin = None):
         #skal laves meget lig funktionen find, men tabeller skal linkes (det er hvad Søren ville kalde En-til-mange vi taler om her: http://bog.laerpython.dk/da/latest/ch-database/sqlite-advanced.html#en-til-mange-relation)
 
@@ -230,27 +262,45 @@ class Data_Alternative:
         #data ville være noget som ['Peter', 124.4, 13]
         #get kunne være 'Kodeord' og get_origin kunne være 'Ansatte'
         pass
-    def add_tabel(s, tabel_name, tabel_colums):
-        #TODO: brug kommandoen "CREATE TABLE [table_name] (something, something, something) guide kan findes på lærpython.dk
-        c = s.con.cursor()
-        print(tabel_name)
-        print(tabel_colums)
-        command = 'CREATE TABLE ' + str(tabel_name) + ' (id INTERGER PRIMARY KEY,'
-        for x in range(len(tabel_colums) - 1):
-            command += tabel_colums[x] + ','
-        command += tabel_colums[-1] + ')'
-        print(command)
-        c.execute(command)
-        s.tabel_names.append(tabel_name)
+    def add_tabel(s, tabel_name, colums_names, colums_types):
 
-    def insert(s, tabel_name, colum_names, data):
-        #TODO: tilføj data til database
-        command = 'INSERT INTO ' + tabel_name + '('
-        for x in range(len(colum_names) - 1):
-            command += colum_names[x] + ','
-        command += colum_names[-1] + ') VALUES ('
-        command += '?,' * (len(data) - 1) + '?)'
-        s.con.execute(command,data)
+        if tabel_name not in s.tabel_names:
+            c = s.con.cursor()
+            command = 'CREATE TABLE ' + str(tabel_name) + ' (ID INTERGER PRIMARY KEY,'
+            for x in range(len(colums_names) - 1):
+                command += colums_names[x] + ' ' + colums_types[x] + ','
+            command += colums_names[-1] + ' ' + colums_types[-1] + ')'
+            c.execute(command)
+            s.tabel_names.append(tabel_name)
+            s.column_names[tabel_name] = colums_names
+            s.column_types[tabel_name] = colums_types
+
+            s.column_names[tabel_name].insert(0, 'ID')
+            s.column_types[tabel_name].insert(0, 'INT')
+            s.con.commit()
+        else:
+            print('Har allerede tabellen ' + tabel_name + ' i databasen.')
+    def insert(s, tabel_name, colum_names, data, index_column = None, index = None):
+        if index != None:
+            print(s.get_length(tabel_name))
+            for i in range(s.get_length(tabel_name) - index + 1):
+                s.edit(tabel_name, ID + i + 1, 'ID', ID + i + 2)
+
+            command = 'INSERT INTO ' + tabel_name + '(ID'
+            for x in range(len(colum_names) - 1):
+                command += colum_names[x] + ','
+            command += colum_names[-1] + ') VALUES (?'
+            command += '?,' * (len(data) - 1) + '?)'
+            data.insert(0, index)
+            s.con.execute(command, data)
+        else:
+            command = 'INSERT INTO ' + tabel_name + '('
+            for x in range(len(colum_names) - 1):
+                command += colum_names[x] + ','
+            command += colum_names[-1] + ') VALUES ('
+            command += '?,' * (len(data) - 1) + '?)'
+            s.con.execute(command, data)
+
         s.con.commit()
     def edit(s, tabel_name, ID, set_column, set_data):
         command = 'UPDATE ' + tabel_name + ' SET ' + set_column + ' = ? WHERE ID = ?'
@@ -290,14 +340,14 @@ class Data_Alternative:
         for x in c:
             count += 1
         return count
-    def print(s, tabel = None):
+    def print(s, tabel_name = None, show_ID = False):
         if len(s.tabel_names) == 0:
-            print()
+            print('Ingen tabeller')
             return
         c = s.con.cursor()
 
         largest_tabel = 0
-        if tabel == None:
+        if tabel_name == None:
             for i in s.tabel_names:
                 c.execute('SELECT * FROM ' + i)
                 for j in c:
@@ -305,7 +355,7 @@ class Data_Alternative:
                         largest_tabel = len(j)
                     break
         else:
-            c.execute('SELECT * FROM ' + tabel)
+            c.execute('SELECT * FROM ' + tabel_name)
             for j in c:
                 if len(j) > largest_tabel:
                     largest_tabel = len(j)
@@ -394,10 +444,12 @@ print(users_data.find(["navn", "password"], ["Nicolai","4321"], get = 'peter'))'
 
 
 '''data1 = Data_Alternative()
-data1.add_tabel("Katte", ['kat1 STRING', 'katte5 INT'])
-for x in range(5):
+data1.add_tabel("Katte", ['kat1', 'katte5'], ['STRING', 'INT'])
+for x in range(3):
     data1.insert('Katte', ['kat1','katte5'], ['Joachim er bedre end Nicolai', 5])
-print(str(data1))'''
+data1.edit('Katte', 2, 'ID', 4)
+data1.insert('Katte', ['kat1','katte5'], ['Nicolai er bedre end Nicolai', 5])
+data1.print(tabel_name = 'Katte', show_ID = False)'''
 
 
 '''data = Data_Alternative(
