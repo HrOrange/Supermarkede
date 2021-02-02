@@ -120,30 +120,34 @@ class login_register_window(tk.Frame):
         name = s.name_entry.get()
         password = s.password_entry.get()
 
-        kunde_eller_ansat = yes_no_window(window_name = 'Vælg enten kunde eller ansat', button_texts = ['Kunde', 'Ansat'])
+        #one way of doing this
+        '''kunde_eller_ansat = yes_no_window(window_name = 'Vælg enten kunde eller ansat', button_texts = ['Kunde', 'Ansat'])
 
         findes_i_database = False
         if kunde_eller_ansat.answer == 'Ansat':
             findes_i_database = ansatte_vagter.find('Ansatte', ['Navn', 'Kodeord'], [name, password])
-        elif kunde_eller_ansat.answer == 'Ansat':
+        elif kunde_eller_ansat.answer == 'Kunde':
+            findes_i_database = users_data.find(['Navn', 'Kodeord'], [name, password])'''
+
+        findes_i_database = ansatte_vagter.find('Ansatte', ['Navn', 'Kodeord'], [name, password])
+        if findes_i_database == False:
             findes_i_database = users_data.find(['Navn', 'Kodeord'], [name, password])
 
-        #s.role = "boss"
-
         if findes_i_database:
-            s.name_entry.delete(0, 'end')
-            s.password_entry.delete(0, 'end')
-            print('Navn eller kodeord er forkert')
+            s.name_entry.delete(0, tk.END)
+            s.password_entry.delete(0, tk.END)
+            print('Navn eller kodeord bruges allerede')
         else:
-            print("registered")
             s.navn = name
             s.kodeord = password
-            if kunde_eller_ansat.answer == 'Ansat':
+            '''if kunde_eller_ansat.answer == 'Ansat':
                 s.rolle = util.roller.ansat.value
                 ansatte_vagter.insert('Ansatte', ['Navn', 'Kodeord', 'Rolle'], [s.navn, s.kodeord, util.roller.kunde.value])
             else:
                 s.rolle = util.roller.kunde.value
-                users_data.insert(s.navn, s.kodeord)
+                users_data.insert(s.navn, s.kodeord)'''
+            s.rolle = util.roller.kunde.value
+            users_data.insert([s.navn, s.kodeord], ['Navn', 'Kodeord'])
             s.close()
     def close(s):
         s.root.destroy()
@@ -177,14 +181,16 @@ class ansat_window(tk.Frame):
         texts = ['Rediger Pris', 'Profil']
         funcs = [s.edit_price, s.profile_window]
         if login_window.rolle > util.roller.kunde.value:
-            extra_variable_names = ['role_button', 'shift_button']
-            extra_texts = ['Roller', 'Vagter']
-            extra_funcs = [s.role_window, s.shift_window]
+            variable_names.insert(len(variable_names) - 1, 'shift_button')
+            texts.insert(len(texts) - 1, 'Vagter')
+            funcs.insert(len(funcs) - 1, s.shift_window)
 
-            for i, j, k in zip(extra_variable_names, extra_texts, extra_funcs):
-                variable_names.insert(len(variable_names) - 1, i)
-                texts.insert(len(texts) - 1, j)
-                funcs.insert(len(funcs) - 1, k)
+            variable_names.insert(len(variable_names) - 1, 'role_button')
+            texts.insert(len(texts) - 1, 'Roller')
+            funcs.insert(len(funcs) - 1, s.role_window)
+
+        if login_window.rolle >= util.roller.lukke_ansvarlig.value:
+            pass #Kan ikke på nuværende tidspunkt nævne hvilke vinduer der skulle være tilgængelig for en lukke_ansvarlig eller højere
 
         for i in range(len(texts)):
             s.buttons[variable_names[i]] = tk.Button(s.left_frame, text = texts[i], command = funcs[i], font = myFont)
@@ -204,6 +210,7 @@ class ansat_window(tk.Frame):
     def edit_price(s):
         #TODO: open toplevel
         pass
+
     def role_window(s):
         if s.windows['role_window']['opened'] == None:
             s.windows['role_window']['opened'] = role_overall_window()
@@ -214,6 +221,59 @@ class ansat_window(tk.Frame):
             s.windows['shift_window']['opened'] = shift_overall_window()
         elif s.windows['shift_window']['opened'].closed:
             s.windows['shift_window']['opened'] = shift_overall_window()
+    def profile_window(s):
+        if s.windows['profile_window']['opened'] == None:
+            s.windows['profile_window']['opened'] = profile_window()
+        elif s.windows['profile_window']['opened'].closed:
+            s.windows['profile_window']['opened'] = profile_window()
+    def window_resize_event(s, event):
+        size = int(20 * (0.4 * s.root.winfo_width() / originial_window_size[0] + 0.6 * s.root.winfo_height() / originial_window_size[1]))
+        for i in buttons:
+            s.buttons[i]['font'] = s.myFont
+    def close(s):
+        s.root.destroy()
+class kunde_window(tk.Frame):
+    def __init__(s, master = None, window_size = [600, 400], window_name = 'Kunde Hjem'):
+        s.root = tk.Tk()
+        #s.root.geometry(str(window_size[0]) + "x" + str(window_size[1])) i denne classes bruges der pack, så størrelsen på root sættes automatisk
+        tk.Frame.__init__(s, s.root)
+        s.pack()
+        #s.place(width = window_size[0], height = window_size[1]) i denne classes bruges der pack, så størrelsen på root sættes automatisk
+        if s.root != None:
+            s.root.title(window_name)
+        #s.bind('<Configure>', window_resize_event) #this calls the function window_resize_event whenever a window resize event is happening
+
+        #frames
+        s.right_frame = tk.Frame(s, bg = 'red', width = window_size[0] * 0.6, height = window_size[1])
+        s.left_frame = tk.Frame(s, bg = 'blue', width = window_size[0] * 0.4, height = window_size[1])
+        s.top_right_frame = tk.Frame(s.right_frame, bg = 'pink', width = window_size[0] * 0.6, height = window_size[1] * 0.6)
+        s.bottom_right_frame = tk.Frame(s.right_frame, bg = 'orange', width = window_size[0] * 0.6, height = window_size[1] * 0.4)
+
+        s.left_frame.pack(side = tk.LEFT, expand = True, fill = tk.BOTH)
+        s.right_frame.pack(side = tk.LEFT, expand = True, fill = tk.BOTH)
+        s.bottom_right_frame.pack(side = tk.TOP, expand = True, fill = tk.BOTH)
+        s.top_right_frame.pack(side = tk.TOP, expand = True, fill = tk.BOTH)
+
+        #buttons
+
+        s.buttons = {}
+        variable_names = ['profile']
+        texts = ['Profil']
+        funcs = [s.profile_window]
+
+        for i in range(len(texts)):
+            s.buttons[variable_names[i]] = tk.Button(s.left_frame, text = texts[i], command = funcs[i], font = myFont)
+            #s.buttons[variable_names[i]].place(relx = 0.5, rely = (i + 0.5) / len(texts), relwidth = 1, relheight = 1 / len(texts), anchor = tk.CENTER)
+            s.buttons[variable_names[i]].pack(expand = True, fill = tk.BOTH)
+
+        #this is the same as above, just you know, more boring and hardcoded
+        #s.give_role_button = tk.Button(left_frame, text = "Giv Rolle", command = give_role).pack(side = tk.TOP)
+        #s.edit_role_button = tk.Button(left_frame, text = "Rediger Rolle", command = edit_role).pack(side = tk.TOP)
+        #s.edit_price_button = tk.Button(left_frame, text = "Rediger Pris", command = edit_pris).pack(side = tk.TOP)
+        #s.shift_overview_button = tk.Button(left_frame, text = "Vagt Oversigt", command = shift_overview).pack(side = tk.TOP)
+
+        s.windows = {'profile_window' : {'window' : None, 'opened' : None}}
+        s.mainloop()
     def profile_window(s):
         if s.windows['profile_window']['opened'] == None:
             s.windows['profile_window']['opened'] = profile_window()
@@ -264,10 +324,24 @@ class shift_overall_window:
             s.root.title(window_name)
         s.root.resizable(False, False)
 
-        button_names = ['shift_overview_open', 'add_shift', 'remove_shift', 'edit_shift']
-        button_funcs = [s.shift_overview_open, s.add_shift, s.remove_shift, s.edit_shift]
-        button_texts = ['Vagt Oversigt', 'Tilføj Vagt', 'Fjern Vagt', 'Rediger Vagt']
         s.buttons = {}
+        button_names = ['shift_overview_open']
+        button_funcs = [s.shift_overview_open]
+        button_texts = ['Vagt Oversigt']
+
+        if login_window.rolle >= util.roller.lukke_ansvarlig.value:
+            button_names.insert(len(button_names) - 1, 'add_shift')
+            button_funcs.insert(len(button_funcs) - 1, s.add_shift)
+            button_texts.insert(len(button_texts) - 1, 'Tilføj Vagt')
+
+            button_names.insert(len(button_names) - 1, 'remove_shift')
+            button_funcs.insert(len(button_funcs) - 1, s.remove_shift)
+            button_texts.insert(len(button_texts) - 1, 'Fjern Vagt')
+
+            button_names.insert(len(button_names) - 1, 'edit_shift')
+            button_funcs.insert(len(button_funcs) - 1, s.edit_shift)
+            button_texts.insert(len(button_texts) - 1, 'Rediger Vagt')
+
         for i in range(len(button_funcs)):
             s.buttons[button_names[i]] = {'button' : tk.Button(s.root, text = button_texts[i], command = button_funcs[i], font = myFont).pack(fill = tk.X), 'opened' : None}
 
@@ -306,7 +380,16 @@ class shift_overview_window:
         ##then create the content within
         #can = tk.Canvas(s.root, yscrollcommand = scroll_bar.set)
         #scroll_bar.grid(row = 0, column = 8, rowspan = 4)
+        s.week_add = 0
 
+        s.right_button_image = tk.PhotoImage(file = "billeder/right.png").subsample(8, 8)
+        s.left_button_image = tk.PhotoImage(file = "billeder/left.png").subsample(8, 8)
+        s.left_button = tk.Button(s.root, text = '', command = s.left, width = 40, height = 40, image = s.left_button_image)
+        s.left_button.grid(row = 0, column = 0)
+        s.middle_label = tk.Label(s.root, text = 'Uge', font = myFont)
+        s.middle_label.grid(row = 0, column = 1)
+        s.right_button = tk.Button(s.root, text = '', command = s.right, width = 40, height = 40, image = s.right_button_image)
+        s.right_button.grid(row = 0, column = 2)
 
         today = datetime.datetime.now().strftime("%Y/%m/%d/%H/%M/%S").split('/')
         current_year = int(today[0])
@@ -321,9 +404,9 @@ class shift_overview_window:
         s.tabel = [[]] #række, kolonne
         kolonne_titler = ['Uge ' + str(week_number), 'Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredage', 'Lørdag', 'Søndag']
         for i in range(len(kolonne_titler)):
-            s.tabel[0].append(tk.Entry(s.root , font = myFont, justify = 'center'))
+            s.tabel[0].append(tk.Entry(s.root , font = myFont, justify = 'center', width = 15))
             s.tabel[-1][-1].insert(tk.END, kolonne_titler[i])
-            s.tabel[-1][-1].grid(row = 0, column = i)
+            s.tabel[-1][-1].grid(row = 1, column = i)
 
 
         #c = ansatte_vagter.find_with_links('VagtLink', ['Navn', '', 'StartTid_Day'])
@@ -336,8 +419,8 @@ class shift_overview_window:
         for i in range(antal_ansatte):
             s.tabel.append([])
             for j in range(8):
-                s.tabel[-1].append(tk.Entry(s.root, font = myFont, justify = 'center'))
-                s.tabel[-1][-1].grid(row = i + 1, column = j)
+                s.tabel[-1].append(tk.Entry(s.root, font = myFont, justify = 'center', width = 15))
+                s.tabel[-1][-1].grid(row = i + 2, column = j)
 
         c_2 = ansatte_vagter.con.cursor()
         c_2.execute('SELECT Navn FROM Ansatte')
@@ -346,7 +429,6 @@ class shift_overview_window:
             s.tabel[count][0].insert(tk.END, x[0])
             count += 1
 
-        count = 0
         for x in c:
             if x[11] == week_number and x[1] == current_year:
                 s.tabel[x[12]][datetime.date(x[1], x[2], x[3]).weekday() + 1].insert(tk.END, str(x[4]) + ':' + str(x[5]) + ' - ' + str(x[9]) + ':' + str(x[10]))
@@ -369,8 +451,56 @@ class shift_overview_window:
         offY = int(toplevel_size[1] / 5)
         for i in range(0, toplevel_size[1], offY):
             s.cat.create_line([(0, i), (toplevel_size[0], i)])'''
-    def apply_change(s):
-        print('Hello')
+    def right(s):
+        s.week_add += 1
+        s.update_week_box()
+
+    def left(s):
+        s.week_add -= 1
+        s.update_week_box()
+
+    def update_week_box(s):
+        today = datetime.datetime.now().strftime("%Y/%m/%d/%H/%M/%S").split('/')
+        current_year = int(today[0])
+        current_month = int(today[1])
+        current_day = int(today[2])
+        week_number = datetime.date(current_year, current_month, current_day).isocalendar()[1] + s.week_add
+        if week_number > 52:
+            while week_number > 52:
+                week_number -= 52
+                current_year += 1
+        elif week_number <= 0:
+            while week_number < 0:
+                week_number += 52
+                current_year -= 1
+
+        for i in range(len(s.tabel)):
+            for j in range(len(s.tabel[i])):
+                s.tabel[i][j].config(state = 'normal')
+
+        s.tabel[0][0].delete(0, tk.END)
+        s.tabel[0][0].insert(0, 'Uge ' + str(week_number))
+
+        antal_ansatte = ansatte_vagter.get_length('Ansatte')
+        for i in range(antal_ansatte):
+            for j in range(1, 8):
+                s.tabel[i + 1][j].delete(0, tk.END)
+
+        c = ansatte_vagter.con.cursor()
+        c.execute('''SELECT Ansatte.Navn, Vagt.StartTid_Year, Vagt.StartTid_Month, Vagt.StartTid_Day, Vagt.StartTid_Hour, Vagt.StartTid_Minute, Vagt.SlutTid_Year, Vagt.SlutTid_Month, Vagt.SlutTid_Day, Vagt.SlutTid_Hour, Vagt.SlutTid_Minute, Vagt.Uge_Dag, Vagt.AnsatID
+        FROM Vagt
+        INNER JOIN Ansatte
+        ON Vagt.AnsatID = Ansatte.ID''')
+
+        for x in c:
+            if x[11] == week_number and x[1] == current_year:
+                w = datetime.date(x[1], x[2], x[3]).weekday() + 1
+                s.tabel[x[12]][w].insert(0, str(x[4]) + ':' + str(x[5]) + ' - ' + str(x[9]) + ':' + str(x[10]))
+
+        for i in range(len(s.tabel)):
+            for j in range(len(s.tabel[i])):
+                s.tabel[i][j].config(state = 'disabled')
+
     def close(s):
         s.closed = True
         s.root.destroy()
@@ -554,7 +684,7 @@ class remove_shift_window:
         s.closed = True
         s.root.destroy()
 
-#vare
+#vare (ikke begyndt)
 class product_overall_window:
     def __init__(s, toplevel_size = [500, 400], window_name = 'Vagter'):
         s.root = tk.Toplevel(width = toplevel_size[0], height = toplevel_size[1])
@@ -854,7 +984,7 @@ class remove_product_window:
 
 
 
-#roller
+#roller (mangler edit_employees_role_window og remove_role_window)
 class role_overall_window:
     def __init__(s, window_size = [500, 400], window_name = 'Roller'):
         s.root = tk.Toplevel(width = window_size[0], height = window_size[1])
@@ -1264,9 +1394,11 @@ class profile_window:
 #Det er her alle vinduerne bliver åbnet
 #tester = yes_no_window([300, 200])
 login_window = login_register_window()
-if login_window.rolle > util.roller.ingen.value:
+if login_window.rolle > util.roller.kunde.value:
     #rolle = util.roller.butiks_chef.value #til testing
     main_window = ansat_window()
+elif login_window.rolle == util.roller.kunde.value:
+    main_window = kunde_window(window_name = login_window.navn + ' Hjem')
 else:
     print('Du loggede ikke ind, så prøv igen senere')
     time.sleep(2)

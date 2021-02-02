@@ -40,14 +40,14 @@ class Data:
         #TODO: tilføj data til database
         c = self.con.cursor()
         #call insert
-        p = "INSERT INTO " + self.navn + "("
+        command = "INSERT INTO " + self.navn + "("
 
         for x in range(len(kolonner) - 1):
-            p += str(kolonner[x]) + ","
-        p += str(kolonner[-1]) + ") VALUES (" + "?," * (len(data)-1) + "?)"
-        print(p)
+            command += str(kolonner[x]) + ","
+        command += str(kolonner[-1]) + ") VALUES (" + "?," * (len(data)-1) + "?)"
+        #print(p)
 
-        c.execute(p,data)
+        c.execute(command,data)
         self.con.commit()
 
 
