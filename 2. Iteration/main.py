@@ -983,7 +983,6 @@ class remove_product_window:
         s.root.destroy()
 
 
-
 #roller (mangler edit_employees_role_window og remove_role_window)
 class role_overall_window:
     def __init__(s, window_size = [500, 400], window_name = 'Roller'):
